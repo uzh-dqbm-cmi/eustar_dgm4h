@@ -3,13 +3,13 @@ import warnings
 warnings.filterwarnings("ignore")
 import sys
 
-sys.path.append("/home/cctrotte/krauthammer/eustar/benchmark_VAE/src/")
+sys.path.append("/home/cctrotte/krauthammer/eustar_clean/benchmark_VAE/src/")
 sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ct/benchmark_VAE/src/")
 
 
-from pythae.models.beta_vae_gp.cohort import Cohort
-from pythae.models.beta_vae_gp.lung import LUNG_ILD
-from pythae.models.beta_vae_gp.heart import HEART
+from pythae.ssc.cohort import Cohort
+from pythae.ssc.lung import LUNG_ILD
+from pythae.ssc.heart import HEART
 import pickle
 
 if __name__ == "__main__":

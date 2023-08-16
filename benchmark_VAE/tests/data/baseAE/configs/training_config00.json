@@ -1,6 +1,0 @@
-{
-    "name": "BaseTrainerConfig",
-    "batch_size": 13,
-    "num_epochs": 2,
-    "learning_rate": 1e-5
-  }

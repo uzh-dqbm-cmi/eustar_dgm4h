@@ -1,7 +1,9 @@
 import pickle
 import sys
 
-sys.path.append("/home/cctrotte/krauthammer/eustar/benchmark_VAE/src/")
+sys.path.append("/home/cctrotte/krauthammer/eustar_clean/benchmark_VAE/")
+
+sys.path.append("/home/cctrotte/krauthammer/eustar_clean/benchmark_VAE/src/")
 sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ct/benchmark_VAE/src/")
 
 from pythae.data.datasets import MissingDataset
@@ -29,11 +31,11 @@ from pythae.models.beta_vae_gp.encoder_decoder import (
     LSTM_Retrodiction_Decoder,
 )
 from pythae.models import AutoModel
-from pythae.models.beta_vae_gp.utils import (
+from pythae.ssc.utils import (
     load_missing_data_train_test,
     get_classifier_config,
 )
-from pythae.models.beta_vae_gp.body import Body
+from pythae.ssc.body import Body
 from pythae.models.beta_vae_gp.classifier_config import (
     ClassifierConfig,
     PredictorConfig,
@@ -47,9 +49,8 @@ import numpy as np
 import torch
 import random
 import os
-from pythae.models.beta_vae_gp.plots import plot_losses
 import pandas as pd
-from pythae.models.beta_vae_gp.plots import plot_losses, plot_recon_losses
+from pythae.ssc.plots import plot_losses, plot_recon_losses
 
 if __name__ == "__main__":
     seed = 0
@@ -272,7 +273,7 @@ if __name__ == "__main__":
         output_dir="my_model",
         learning_rate=1e-3,
         batch_size=1,
-        num_epochs=6,  
+        num_epochs=2,  
         customized=True,  # if we use the cusomized data loader for different sized patients
     )
 

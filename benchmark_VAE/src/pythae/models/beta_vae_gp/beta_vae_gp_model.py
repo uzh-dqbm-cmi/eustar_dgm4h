@@ -24,8 +24,8 @@ import numpy as np
 import random
 from ..base.base_utils import CPU_Unpickler
 
-from pythae.models.beta_vae_gp.utils import N_log_prob
 
+from .utils import N_log_prob
 
 # parent class
 class BetaVAEgp(VAE):

@@ -23,10 +23,10 @@ from .beta_vae_gp_config import (
     BetaVAEgpPostConfig,
     BetaVAEgpCondIndConfig,
 )
-from .rnn_config import RNNMLPConfig
+
 
 from .beta_vae_gp_model import BetaVAEgp, BetaVAEgpInd, BetaVAEgpPrior, BetaVAEgpPost
-from .baseline_rnn import RNNMLP
+
 from .beta_vae_gp_cond_ind import BetaVAEgpCondInd
 
 __all__ = [
@@ -40,6 +40,5 @@ __all__ = [
     "BetaVAEgpPriorConfig",
     "BetaVAEgpPostConfig",
     "BetaVAEgpCondIndConfig",
-    "RNNMLP",
-    "RNNMLPConfig",
+
 ]

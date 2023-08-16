@@ -1,7 +1,7 @@
 import pickle
 import sys
 
-sys.path.append("/home/cctrotte/krauthammer/eustar/benchmark_VAE/src/")
+sys.path.append("/home/cctrotte/krauthammer/eustar_clean/benchmark_VAE/src/")
 sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ct/benchmark_VAE/src/")
 
 from pythae.data.datasets import MissingDataset

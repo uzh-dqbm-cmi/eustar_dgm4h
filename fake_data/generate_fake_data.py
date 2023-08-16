@@ -7,11 +7,11 @@ import numpy as np
 import pickle
 import sys
 
-sys.path.append("/home/cctrotte/krauthammer/eustar/")
+sys.path.append("/home/cctrotte/krauthammer/eustar_clean/")
 sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ct/")
 from fake_data.utils import *
 
-sys.path.append("/home/cctrotte/krauthammer/eustar/benchmark_VAE/src/")
+sys.path.append("/home/cctrotte/krauthammer/eustar_clean/benchmark_VAE/src/")
 sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ct/benchmark_VAE/src/")
 
 
