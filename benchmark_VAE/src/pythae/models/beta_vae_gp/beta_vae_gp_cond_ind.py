@@ -399,7 +399,7 @@ class BetaVAEgpCondInd(BetaVAEgp):
         ################################
         ### 6) OUTPUT
         ################################
-        # keep track of objective loss we use in CV 
+        # keep track of objective loss we use in CV
         loss_cv = loss.clone()
         output = ModelOutput(
             loss_recon=self.w_recon * loss_recon,
@@ -491,7 +491,7 @@ class BetaVAEgpCondInd(BetaVAEgp):
             data_x_padded, batch_first=True, lengths=splits, enforce_sorted=False
         )
         return data_x_padded
-    
+
     @classmethod
     def load_from_folder(cls, dir_path):
         """Class method to be used to load the model from a specific folder
@@ -534,7 +534,9 @@ class BetaVAEgpCondInd(BetaVAEgp):
             dir_path, "var_predictor.pkl"
         )
 
-        prior_latent = cls._load_custom_modules_from_folder(dir_path, "prior_latent.pkl")
+        prior_latent = cls._load_custom_modules_from_folder(
+            dir_path, "prior_latent.pkl"
+        )
         model = cls(
             model_config,
             encoder=encoder,
@@ -547,7 +549,7 @@ class BetaVAEgpCondInd(BetaVAEgp):
         model.load_state_dict(model_weights)
 
         return model
-    
+
     def save(self, dir_path: str):
         """Method to save the model at a specific location. It saves, the model weights as a
         ``models.pt`` file along with the model config as a ``model_config.json`` file. If the

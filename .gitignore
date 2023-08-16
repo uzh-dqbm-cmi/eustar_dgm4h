@@ -41,3 +41,6 @@ env/
 *.log
 .DS_Store
 
+# models on fake data
+my_model/
+

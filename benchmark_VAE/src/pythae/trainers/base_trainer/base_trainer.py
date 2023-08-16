@@ -323,15 +323,13 @@ class BaseTrainer:
         self.all_losses_train = torch.empty(
             self.training_config.num_epochs, 3 + len(self.model.classifiers)
         )
-        self.loss_train_cv = torch.empty(
-            self.training_config.num_epochs, 1)
-        
+        self.loss_train_cv = torch.empty(self.training_config.num_epochs, 1)
+
         self.all_losses_valid = torch.empty(
             self.training_config.num_epochs, 3 + len(self.model.classifiers)
         )
-        self.loss_valid_cv = torch.empty(
-            self.training_config.num_epochs, 1)
-        
+        self.loss_valid_cv = torch.empty(self.training_config.num_epochs, 1)
+
         self.all_losses_train_unw = torch.empty(
             self.training_config.num_epochs, 3 + len(self.model.classifiers)
         )

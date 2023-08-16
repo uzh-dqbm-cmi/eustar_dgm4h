@@ -408,7 +408,6 @@ class Cohort:
                     file,
                 )
 
-
         return (
             dats[0],
             dats[1],

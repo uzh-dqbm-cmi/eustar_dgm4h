@@ -62,6 +62,7 @@ class AutoConfig(BaseConfig):
 
         elif config_name == "BetaVAEgpCondIndConfig":
             from ..beta_vae_gp import BetaVAEgpCondIndConfig
+
             model_config = BetaVAEgpCondIndConfig.from_json_file(json_path)
         elif config_name == "BetaVAEgpPriorConfig":
             from ..beta_vae_gp import BetaVAEgpPriorConfig

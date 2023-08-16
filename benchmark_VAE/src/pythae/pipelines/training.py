@@ -50,9 +50,8 @@ class TrainingPipeline(Pipeline):
         training_config: Optional[BaseTrainerConfig] = None,
     ):
         if training_config is None:
-            
-            training_config = BaseTrainerConfig()
 
+            training_config = BaseTrainerConfig()
 
         if not isinstance(training_config, BaseTrainerConfig):
             raise AssertionError(
@@ -146,8 +145,6 @@ class TrainingPipeline(Pipeline):
 
         else:
             eval_dataset = None
-
-        
 
         if isinstance(self.training_config, BaseTrainerConfig):
             if self.training_config.customized:

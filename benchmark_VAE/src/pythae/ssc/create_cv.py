@@ -23,14 +23,17 @@ from pythae.ssc.cohort import Cohort
 import numpy as np
 from pythae.ssc.utils import compute_folds, save_cv
 
+
 class CV:
-    def __init__(self, organs, data_path, save_path, n_folds = 5):
+    def __init__(self, organs, data_path, save_path, n_folds=5):
         self.n_folds = n_folds
         self.bodies = [Body(organs) for i in range(n_folds)]
         cohort = Cohort(data_path)
         cohort.preprocess(ns_visits_drop=[1, 2, 3, 4] + [i for i in range(15, 35)])
         Patients = cohort.create_patients()
-        self.cohorts = compute_folds(cohort, Patients, n_folds=n_folds, frac_train=0.85, seed=0)
+        self.cohorts = compute_folds(
+            cohort, Patients, n_folds=n_folds, frac_train=0.85, seed=0
+        )
         for cohort, body in zip(self.cohorts, self.bodies):
             cohort.extract_data_frame(body)
             for organ in body.organs:
@@ -39,9 +42,8 @@ class CV:
         save_cv(self.cohorts, self.bodies[0], save_path, name="_ml4h", PICKLE=True)
 
 
-        
 if __name__ == "__main__":
-    local = False
+    local = True
     name = "_ml4h"
     n_folds = 5
     if local:
