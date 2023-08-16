@@ -1,0 +1,43 @@
+
+.DS_Store
+.gitattributes
+
+# folders to ignore
+/test_folder
+/test_scripts/test_notebooks
+# vscode stuff
+.vscode
+
+# models
+benchmark_VAE/my_model/
+my_model/
+
+# Compiled Python files
+*.pyc
+__pycache__/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+*.venv/
+*.env/
+
+# Local development settings
+.vscode/
+*.code-workspace
+.idea/
+*.sqlite3
+
+# Miscellaneous
+*.pyo
+*.swp
+*.bak
+*.tmp
+*.log
+.DS_Store
+
