@@ -4,14 +4,6 @@ import pandas as pd
 
 import sys
 
-# sys.path.append(
-#   "/home/cctrotte/krauthammer/eustar/benchmark_VAE/src/pythae/models/beta_vae_gp"
-# )
-# sys.path.append("/home/cctrotte/krauthammer/eustar/benchmark_VAE/src/")
-sys.path.append(
-    "/cluster/work/medinfmk/EUSTAR2/code_ms/benchmark_VAE/src/models/beta_vae_gp"
-)
-sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ms/benchmark_VAE/src/")
 
 from pythae.ssc.patient import Patient
 
@@ -377,7 +369,6 @@ class Cohort:
         return self.Patients_train, self.Patients_test
 
     def data_train_test(self, borgan, path="", name="", PICKLE=True):
-        # !! switched organ and path order to have default value for path
         indeces_list = [
             [i for i, item in enumerate(borgan.encoding_xyt1) if item == xyt]
             for xyt in ["x", "y", "t", "s"]
@@ -417,8 +408,6 @@ class Cohort:
                     file,
                 )
 
-        # with open('dataTrain.pkl', 'rb') as file:
-        # data = pickle.load(file)
 
         return (
             dats[0],

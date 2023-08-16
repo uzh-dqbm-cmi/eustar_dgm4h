@@ -8,16 +8,16 @@ import pickle
 import sys
 
 sys.path.append("/home/cctrotte/krauthammer/eustar_clean/")
-sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ct/")
+sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ml4h_ct/")
 from fake_data.utils import *
 
 sys.path.append("/home/cctrotte/krauthammer/eustar_clean/benchmark_VAE/src/")
-sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ct/benchmark_VAE/src/")
+sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ml4h_ct/benchmark_VAE/src/")
 
 
 params = {
     "patients": {
-        "n_patients": 2000,
+        "n_patients": 200,
         "min_num_visits": 5,
         "max_num_visits": 30,
         "features": {"Sex": {"values": ["female", "male"], "kind": "categorical", "nan_prop": 0.0}, "Height": {"values": [60, 220], "kind": "continuous", "nan_prop": 0.2},
@@ -320,7 +320,7 @@ if __name__ == "__main__":
     pats["Date of birth"] = [random_date(start="1920-01-01") for i in range(len(pats))]
     pats["Onset of first non-Raynaud?s of the disease"] = [random_date(start="1980-01-01") for i in range(len(pats))]
     meds = pd.DataFrame({"Id Patient 2018": patient_ids})
-    path = "/home/cctrotte/krauthammer/eustar/fake_data/raw/"
+    path = "/home/cctrotte/krauthammer/eustar_clean/fake_data/raw/"
     for df, name in zip([pats, vis, meds], ["pats", "vis", "meds"]):
         with open(path + name, "wb") as file:
             pickle.dump(df, file)

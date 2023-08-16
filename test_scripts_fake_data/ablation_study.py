@@ -4,7 +4,6 @@ import sys
 sys.path.append("/home/cctrotte/krauthammer/eustar_clean/benchmark_VAE/")
 
 sys.path.append("/home/cctrotte/krauthammer/eustar_clean/benchmark_VAE/src/")
-sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ct/benchmark_VAE/src/")
 
 from pythae.data.datasets import MissingDataset
 
@@ -273,7 +272,7 @@ if __name__ == "__main__":
         output_dir="my_model",
         learning_rate=1e-3,
         batch_size=1,
-        num_epochs=2,  
+        num_epochs=1,  
         customized=True,  # if we use the cusomized data loader for different sized patients
     )
 

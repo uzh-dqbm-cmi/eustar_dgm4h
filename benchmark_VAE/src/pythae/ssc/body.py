@@ -2,9 +2,9 @@ import sys
 import pickle
 
 sys.path.append("/home/cctrotte/krauthammer/eustar_clean/benchmark_VAE/src/")
-sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ms/benchmark_VAE/src/")
-sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ct/benchmark_VAE/src/")
+sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ml4h_ct/benchmark_VAE/src/")
 import warnings
+import copy
 
 warnings.filterwarnings("ignore")
 from pythae.ssc.organs.lung import LUNG_ILD
@@ -173,8 +173,9 @@ class Body:
 
 
 if __name__ == "__main__":
-    local = True
-    name = "_medium"
+    local = False
+    name = "_ml4h"
+    cv = True
     # name = "_allcont"
     if local:
         data_path = "/home/cctrotte/krauthammer/eustar/fake_data/raw/"
@@ -210,6 +211,7 @@ if __name__ == "__main__":
     cohort.preprocess(ns_visits_drop=[1, 2, 3, 4] + [i for i in range(15, 35)])
     cut_time = padd_time = 15
     Patients = cohort.create_patients()
+
     Patients_train, Patients_test = cohort.split_train_test()
     cohort.extract_data_frame(body)
     for organ in body.organs:

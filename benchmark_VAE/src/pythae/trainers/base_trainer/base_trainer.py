@@ -3,6 +3,7 @@ import logging
 import os
 from copy import deepcopy
 from typing import Any, Dict, List, Optional
+import pickle
 
 import torch
 import torch.optim as optim
@@ -20,6 +21,7 @@ from ..training_callbacks import (
     TrainingCallback,
 )
 from .base_training_config import BaseTrainerConfig
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +114,8 @@ class BaseTrainer:
         self.model = model
         self.optimizer = optimizer
         self.scheduler = scheduler
+
+        self.eval_results = {}
 
         self.device = device
 
@@ -469,6 +473,8 @@ class BaseTrainer:
                 best_eval_loss = epoch_eval_loss
                 best_model = deepcopy(self.model)
                 self._best_model = best_model
+                self.eval_results["best_eval_loss"] = best_eval_loss
+                self.eval_results["epochs"] = epoch
 
             elif (
                 epoch_train_loss < best_train_loss
@@ -477,6 +483,8 @@ class BaseTrainer:
                 best_train_loss = epoch_train_loss
                 best_model = deepcopy(self.model)
                 self._best_model = best_model
+                self.eval_results["best_train_loss"] = best_train_loss
+                self.eval_results["epochs"] = epoch
 
             if (
                 self.training_config.steps_predict is not None
@@ -846,6 +854,9 @@ class BaseTrainer:
 
         # save training config
         self.training_config.save_json(dir_path, "training_config")
+        # save evaluation results
+        with open(dir_path + "/eval_results.json", "w") as f:
+            json.dump(self.eval_results, f)
 
         self.callback_handler.on_save(self.training_config)
 

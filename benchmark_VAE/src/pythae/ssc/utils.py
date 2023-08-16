@@ -1,46 +1,117 @@
 import numpy as np
 import os, pickle
 import sys
+import copy
 
-# sys.path.append(
-#    "/home/cctrotte/krauthammer/eustar/benchmark_VAE/src/pythae/models/beta_vae_gp"
-# )
-
-# sys.path.append("/home/cctrotte/krauthammer/eustar/benchmark_VAE/src/")
-sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ms/benchmark_VAE/src/pythae/")
-# sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ct/benchmark_VAE/src/pythae/")
-
-# current_dir = os.getcwd()
-# os.chdir('/cluster/work/medinfmk/EUSTAR2/code_ms/benchmark_VAE/src/pythae/')
 from pythae.data.datasets import MissingDataset
 
 # from benchmark_VAE.src.pythae.models.beta_vae_gp.classifier_config import ClassifierConfig
 from pythae.models.beta_vae_gp.classifier_config import ClassifierConfig
 
 
-# os.chdir( current_dir )
+def compute_folds(cohort, Patients, n_folds = 5, frac_train = 0.85, seed=0):
+    cohorts = [copy.deepcopy(cohort) for i in range(n_folds)]
+    np.random.seed(seed)
+    perm = np.random.permutation(len(Patients))
+    # take fraction for training
+    Ntrain = int(len(Patients) * frac_train) 
+    # select indeces for training and testing
+    ind_train = perm[:Ntrain]
+    ind_test = perm[Ntrain:]
+
+    # compute folds
+    fold_size = int(Ntrain/n_folds)
+    fold_ranges = [(i * fold_size, (i + 1) * fold_size) for i in range(n_folds)]
 
 
-# def N_log_prob(mu, log_var, y):
-#     """
-#     Evaluate the negative log probability -log p( y | z ) = -log N( y | mu(z), sigma(z) )
-#     of the independent Guassian likelihood for observed data y.
-#     mu: N x T x P
-#     log_var: N x T x P
-#     y: N x T x P
-#     log_prob: 1
-#     """
+    for i, (start, end) in enumerate(fold_ranges):
+        valid_indices = ind_train[start:end]
+        train_indices = np.concatenate([ind_train[:start], ind_train[end:]])
+        cohorts[i].Patients_train = cohorts[i].Patients[train_indices]
+        cohorts[i].Patients_valid = cohorts[i].Patients[valid_indices]
+        cohorts[i].Patients_test = cohorts[i].Patients[ind_test]
 
-#     # norm = np.log( 2 * np.pi ) + log_var # ignore normalozation factor
-#     # norm =  log_var
-#     # square = (y - mu).pow(2) / log_var.exp()
+    return cohorts
+def remove_short_samples(data_train, data_valid, data_test):
+    data_train.list_x = [elem for elem in data_train.list_x if len(elem) >1]
+    data_train.list_y = [elem for elem in data_train.list_y if len(elem) >1]
+    data_train.list_t = [elem for elem in data_train.list_t if len(elem) >1]
+    data_train.list_s = [elem for elem in data_train.list_s if len(elem) >1]
 
-#     # neg_log_prob = 0.5*(norm + square)#.sum()
-#     neg_log_prob = log_var + (y - mu).pow(2) / log_var.exp()
+    data_train.missing_x = [elem for elem in data_train.missing_x if len(elem)> 1]
+    data_train.missing_y = [elem for elem in data_train.missing_y if len(elem)> 1]
+    data_train.missing_t = [elem for elem in data_train.missing_t if len(elem)> 1]
+    data_train.missing_s = [elem for elem in data_train.missing_s if len(elem)> 1]
+    
+    data_valid.list_x = [elem for elem in data_valid.list_x if len(elem) >1]
+    data_valid.list_y = [elem for elem in data_valid.list_y if len(elem) >1]
+    data_valid.list_t = [elem for elem in data_valid.list_t if len(elem) >1]
+    data_valid.list_s = [elem for elem in data_valid.list_s if len(elem) >1]
+    data_valid.missing_x = [elem for elem in data_valid.missing_x if len(elem)> 1]
+    data_valid.missing_y = [elem for elem in data_valid.missing_y if len(elem)> 1]
+    data_valid.missing_t = [elem for elem in data_valid.missing_t if len(elem)> 1]
+    data_valid.missing_s = [elem for elem in data_valid.missing_s if len(elem)> 1]
 
-#     return neg_log_prob
+    data_test.list_x = [elem for elem in data_test.list_x if len(elem) >1]
+    data_test.list_y = [elem for elem in data_test.list_y if len(elem) >1]
+    data_test.list_t = [elem for elem in data_test.list_t if len(elem) >1]
+    data_test.list_s = [elem for elem in data_test.list_s if len(elem) >1]
+    data_test.missing_x = [elem for elem in data_test.missing_x if len(elem)> 1]
+    data_test.missing_y = [elem for elem in data_test.missing_y if len(elem)> 1]
+    data_test.missing_t = [elem for elem in data_test.missing_t if len(elem)> 1]
+    data_test.missing_s = [elem for elem in data_test.missing_s if len(elem)> 1]
+    return data_train, data_valid, data_test
+def save_cv(cohorts, borgan, path="", name="", PICKLE=True):
+        indeces_list = [
+            [i for i, item in enumerate(borgan.encoding_xyt1) if item == xyt]
+            for xyt in ["x", "y", "t", "s"]
+        ]
+        for i, cohort in enumerate(cohorts):
+            dats = []
+            for Patients in [cohort.Patients_train, cohort.Patients_valid, cohort.Patients_test]:
+                list_dat = [
+                    [
+                        getattr(pat, "array_filled_vis_" + borgan.name)[:, il]
+                        for pat in Patients
+                    ]
+                    for il in indeces_list
+                ]
+                list_miss = [
+                    [getattr(pat, "missing_vis_" + borgan.name)[:, il] for pat in Patients]
+                    for il in indeces_list
+                ]
+
+                dats.append(MissingDataset(*list_dat, *list_miss))
+
+            if PICKLE:
+                with open(path + "data_train" + "fold_" + str(i) + "_" + name + ".pkl", "wb") as file:
+                    pickle.dump(dats[0], file)
+                with open(path + "data_valid" + "fold_" + str(i) + "_" + name + ".pkl", "wb") as file:
+                    pickle.dump(dats[1], file)
+                with open(path + "data_test" + "fold_" + str(i) + "_" + name + ".pkl", "wb") as file:
+                    pickle.dump(dats[2], file)
+
+            with open(path + "names_splits" + name + ".pkl", "wb") as file:
+                pickle.dump(
+                    (
+                        borgan.encoding_names,
+                        borgan.splits,
+                        borgan.encoding_xyt0,
+                        borgan.encoding_xyt1,
+                    ),
+                    file,
+                )
 
 
+        return (
+            dats[0],
+            dats[1],
+            borgan.encoding_names,
+            borgan.splits,
+            borgan.encoding_xyt0,
+            borgan.encoding_xyt1,
+        )
+    
 def load_missing_data_train_test(path, name=""):
     # load data
     # path = '/cluster/work/medinfmk/EUSTAR2/data/processed/'
@@ -59,7 +130,29 @@ def load_missing_data_train_test(path, name=""):
 
     return data_train, data_test, names, splits, xyt0, xyt1
 
+def load_cv(path, n_folds = 5, name=""):
+    # load data
+    # path = '/cluster/work/medinfmk/EUSTAR2/data/processed/'
+    mod_name_train = "data_train" 
+    mod_name_test = "data_test" 
+    mod_name_valid = "data_valid" 
+    names_splits = "names_splits"
+    data_train_folds = []
+    data_valid_folds = []
+    data_test_folds = []
 
+    for i in range(n_folds):
+        with open(path + mod_name_train + "fold_" + str(i) + "_"+ name + ".pkl", "rb") as file:
+            data_train_folds.append(pickle.load(file))
+        with open(path + mod_name_valid + "fold_" + str(i) + "_"+ name + ".pkl", "rb") as file:
+            data_valid_folds.append(pickle.load(file))
+        with open(path + mod_name_test + "fold_" + str(i) + "_"+ name + ".pkl", "rb") as file:
+            data_test_folds.append(pickle.load(file))
+
+        with open(path + names_splits + name + ".pkl", "rb") as file:
+            names, splits, xyt0, xyt1 = pickle.load(file)
+
+    return data_train_folds, data_valid_folds, data_test_folds, names, splits, xyt0, xyt1
 # search for substrings in names
 def find_substrings(names, sub):
     res = []
