@@ -36,6 +36,7 @@ from pythae.ssc.utils import (
     get_classifier_config,
     remove_short_samples,
 )
+from pythae.ssc.results import Evaluation
 from pythae.ssc.body import Body
 from pythae.models.beta_vae_gp.classifier_config import (
     ClassifierConfig,
@@ -83,9 +84,12 @@ if __name__ == "__main__":
         xyt1,
     ) = load_cv(data_path, name=name)
     var_names0 = [var.name for var in (bodies[0].variables + bodies[0].labels)]
+    var_weights0 = [var.class_weight_norm for var in (bodies[0].variables + bodies[0].labels)]
 
     names_x0 = [vN for i, vN in enumerate(var_names0) if xyt0[i] == "x"]
     names_y0 = [vN for i, vN in enumerate(var_names0) if xyt0[i] == "y"]
+    weights_x0 = [vW for i, vW in enumerate(var_weights0) if xyt0[i] == "x"]
+    weights_y0 = [vW for i, vW in enumerate(var_weights0) if xyt0[i] == "y"]  
 
     kinds_x0 = [
         var.kind
@@ -123,7 +127,7 @@ if __name__ == "__main__":
                   "hidden_dims_log_var_dec": [[20], [100], [100, 100]],
                   }
     combinations = list(itertools.product(*param_grid.values()))
-    combinations = random.sample(combinations, 4)
+    combinations = random.sample(combinations, 1)
     res_df = pd.DataFrame(columns=[str(c) for c in combinations], index = ["fold_" + str(i) for i in range(len(data_train_folds))])
     for i, (dropout, lstm_hidden_size, num_lstm_layers, hidden_dims_enc, hidden_dims_emb_dec, hidden_dims_log_var_dec) in enumerate(combinations):
         print(f"Combination {i}")
@@ -171,12 +175,12 @@ if __name__ == "__main__":
         beta = 0.01
         # overall weight factor for the classifiers
         w_class = {
-            "lung_inv": 0,
-            "lung_stage": 0,
-            "heart_inv": 0,
-            "heart_stage": 0,
-            "arthritis_inv": 0,
-            "arthritis_stage": 0,
+            "lung_inv": 0.2,
+            "lung_stage": 0.2,
+            "heart_inv": 0.2,
+            "heart_stage": 0.2,
+            "arthritis_inv": 0.2,
+            "arthritis_stage": 0.2,
         }
         # w_recon = max(0, 1 - beta - sum(w_class.values()))
         w_recon = 1
@@ -185,12 +189,12 @@ if __name__ == "__main__":
         # beta_pred = 0.0
         # overall weight factor for the classifiers
         w_class_pred = {
-            "lung_inv": 0,
-            "lung_stage": 0,
-            "heart_inv": 0,
-            "heart_stage": 0,
-            "arthritis_inv": 0,
-            "arthritis_stage": 0,
+            "lung_inv": 0.2,
+            "lung_stage": 0.2,
+            "heart_inv": 0.2,
+            "heart_stage": 0.2,
+            "arthritis_inv": 0.2,
+            "arthritis_stage": 0.2,
         }
         # w_recon = max(0, 1 - beta - sum(w_class.values()))
         w_recon_pred = 1
@@ -253,6 +257,8 @@ if __name__ == "__main__":
             splits_y0=splits_y0,
             kinds_y0=kinds_y0,
             names_x0=names_x0,
+            weights_x0=weights_x0,
+            weights_y0=weights_y0,
             to_reconstruct_x = to_reconstruct_x,
             to_reconstruct_y = to_reconstruct_y,
             device=device,
@@ -261,13 +267,14 @@ if __name__ == "__main__":
             progression=False,
         )
 
-        for k in range(len(data_train_folds)):
+        # for k in range(len(data_train_folds)):
+        for k in range(1):
 
             config = BaseTrainerConfig(
                 output_dir="cv/" + str(k),
                 learning_rate=1e-3,
                 batch_size=10,
-                num_epochs=1,  
+                num_epochs=30,  
                 customized=True,  # if we use the cusomized data loader for different sized patients
             )
             if retrodiction:
@@ -304,5 +311,7 @@ if __name__ == "__main__":
             res_df.iloc[k, i] = pipeline.trainer.eval_results["best_eval_loss"]
 
     res_df.to_csv("cv/cv_results.csv")
-
+    ####
+    model = pipeline.trainer._best_model
+    evaluation = Evaluation(data_valid_folds[0], model, bodies[0], splits_x0, names_x0, kinds_x0, splits_y0, names_y0, kinds_y0, 1400)
     print("End")

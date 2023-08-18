@@ -93,6 +93,19 @@ class Variable:
             self.decoder = self.enc.inverse_transform
 
             self.encoding_names = self.enc.get_feature_names_out()
+            if self.encoding == "one_hot":
+                cats = self.enc.transform(Df_train[[self.name]].dropna())
+                # multi class
+                if cats.shape[1] > 1:
+                    class_freq = np.sum(cats, axis=0)
+                    class_weight = sum(class_freq) / class_freq
+                    class_weight_norm = class_weight / np.sum(class_weight)
+                else:
+                    # binary: class_weight = #neg/#pos
+                    class_weight_norm = (len(cats) - sum(cats)) / sum(cats)
+                self.class_weight_norm = list(class_weight_norm)
+            else:
+                self.class_weight_norm = None
 
     def encode(self, Df, fill_nan=False):
         """

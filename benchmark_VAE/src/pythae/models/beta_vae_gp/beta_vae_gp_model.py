@@ -86,6 +86,9 @@ class BetaVAEgp(VAE):
         self.splits_y0 = model_config.splits_y0
         self.kinds_y0 = model_config.kinds_y0
 
+        self.weights_x0 = model_config.weights_x0
+        self.weights_y0 = model_config.weights_y0
+
         self.to_reconstruct_x = model_config.to_reconstruct_x
         self.to_reconstruct_y = model_config.to_reconstruct_y
 
@@ -891,6 +894,7 @@ class BetaVAEgp(VAE):
         non_missing,
         splits0,
         kinds0,
+        weights0,
         output_log_var=None,
         to_reconstruct=[],
     ):
@@ -949,7 +953,10 @@ class BetaVAEgp(VAE):
             elif kinds0[i] == "categorical":
                 if to_reconstruct[i][2]:
                     dimension_loss = F.cross_entropy(
-                        out, target_splitted[i], reduction="none"
+                        out,
+                        target_splitted[i],
+                        weight=torch.tensor(weights0[i], device=self.device),
+                        reduction="none",
                     ).unsqueeze(1)
                     ce_loss = dimension_loss
                 else:
@@ -960,8 +967,14 @@ class BetaVAEgp(VAE):
 
             elif kinds0[i] == "binary":
                 if to_reconstruct[i][2]:
-                    dimension_loss = F.binary_cross_entropy(
-                        torch.sigmoid(out), target_splitted[i], reduction="none"
+                    # dimension_loss = F.binary_cross_entropy(
+                    #     torch.sigmoid(out), target_splitted[i], reduction="none"
+                    # )
+                    dimension_loss = F.binary_cross_entropy_with_logits(
+                        out,
+                        target_splitted[i],
+                        reduction="none",
+                        pos_weight=torch.tensor(weights0[i], device=self.device),
                     )
                     ce_loss = dimension_loss
                 else:
@@ -1023,11 +1036,12 @@ class BetaVAEgp(VAE):
             non_missing_x,
             self.splits_x0,
             self.kinds_x0,
+            self.weights_x0,
             output_log_var=output_log_var,
             to_reconstruct=self.to_reconstruct_x,
         )
 
-    def loss_classifier(self, y_out, y_true, non_missing_y, splits, kinds):
+    def loss_classifier(self, y_out, y_true, non_missing_y, splits, kinds, weights):
         """
         compute the classification loss
         """
@@ -1053,6 +1067,7 @@ class BetaVAEgp(VAE):
                 non_missing_y,
                 splits,
                 kinds,
+                weights,
                 output_log_var=None,
                 to_reconstruct=self.to_reconstruct_y,
             )

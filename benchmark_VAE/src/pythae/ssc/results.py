@@ -577,7 +577,7 @@ class Evaluation:
                 for sample in self.samples
             ]
         else:
-            self.res_matrix, self.probs_matrix, self.res_list = body.decode_preds(
+            self.res_matrix, self.probs_matrix, self.res_list = self.body.decode_preds(
                 self.predictions.recon_m, self.splits_x0, self.names_x0
             )
             self.res_list_samples = [
@@ -588,15 +588,24 @@ class Evaluation:
             self.ground_truth_y = self.body.decode(
                 self.data_y_recon, self.splits_y0, self.names_y0
             )
-            (
-                self.res_matrix_y,
-                self.probs_matrix_y,
-                self.res_list_y,
-            ) = self.body.decode_preds(
-                self.predictions.y_out_rec, self.splits_y0, self.names_y0
-            )
-            self.predicted_cats_y = torch.empty_like(self.res_matrix_y)
+            if self.model.sample_z:
+                (
+                    self.res_matrix_y,
+                    self.probs_matrix_y,
+                    self.res_list_y,
+                ) = self.body.decode_preds(
+                    self.predictions.y_out_rec, self.splits_y0, self.names_y0
+                )
+            else:
+                (
+                    self.res_matrix_y,
+                    self.probs_matrix_y,
+                    self.res_list_y,
+                ) = self.body.decode_preds(
+                    self.predictions.y_out_m_rec, self.splits_y0, self.names_y0
+                )
 
+            self.predicted_cats_y = torch.empty_like(self.res_matrix_y)
             for index, var in enumerate(self.names_y0):
                 self.predicted_cats_y[:, index] = self.body.get_var_by_name(
                     var
@@ -604,7 +613,7 @@ class Evaluation:
 
     def get_patient_specific_baseline_x(self):
 
-        list_ = np.concatenate(([0], np.cumsum(splits_x0)))
+        list_ = np.concatenate(([0], np.cumsum(self.splits_x0)))
         patient_specific_baseline = []
         # iterate over x variables
         for index, elem in enumerate(list_[:-1]):

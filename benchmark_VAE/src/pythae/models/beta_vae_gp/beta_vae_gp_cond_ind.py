@@ -324,6 +324,7 @@ class BetaVAEgpCondInd(BetaVAEgp):
                     non_missing_y_recon[indices_recon, :][:, classifier.y_dims],
                     [self.splits_y0[elem] for elem in classifier.y_indices],
                     [self.kinds_y0[elem] for elem in classifier.y_indices],
+                    [self.weights_y0[elem] for elem in classifier.y_indices],
                 )[0]
             else:
                 loss_class[i] = self.loss_classifier(
@@ -332,6 +333,7 @@ class BetaVAEgpCondInd(BetaVAEgp):
                     non_missing_y_recon[indices_recon, :][:, classifier.y_dims],
                     [self.splits_y0[elem] for elem in classifier.y_indices],
                     [self.kinds_y0[elem] for elem in classifier.y_indices],
+                    [self.weights_y0[elem] for elem in classifier.y_indices],
                 )[0]
             loss_class_weighted[i] = self.w_class[classifier.name] * loss_class[i]
             if self.sample_z:
@@ -341,6 +343,7 @@ class BetaVAEgpCondInd(BetaVAEgp):
                     non_missing_y_recon[~indices_recon, :][:, classifier.y_dims],
                     [self.splits_y0[elem] for elem in classifier.y_indices],
                     [self.kinds_y0[elem] for elem in classifier.y_indices],
+                    [self.weights_y0[elem] for elem in classifier.y_indices],
                 )[0]
             else:
                 loss_class_pred[i] = self.loss_classifier(
@@ -349,6 +352,7 @@ class BetaVAEgpCondInd(BetaVAEgp):
                     non_missing_y_recon[~indices_recon, :][:, classifier.y_dims],
                     [self.splits_y0[elem] for elem in classifier.y_indices],
                     [self.kinds_y0[elem] for elem in classifier.y_indices],
+                    [self.weights_y0[elem] for elem in classifier.y_indices],
                 )[0]
             loss_class_weighted_pred[i] = (
                 self.w_class_pred[classifier.name] * loss_class_pred[i]

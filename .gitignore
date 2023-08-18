@@ -43,4 +43,8 @@ env/
 
 # models on fake data
 my_model/
+*.pkl
+*.pt
+*.json
+*.csv
 

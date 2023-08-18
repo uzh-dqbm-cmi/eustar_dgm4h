@@ -73,6 +73,9 @@ class BetaVAEgpConfig(VAEConfig):
         default_factory=lambda: ["", ""]
     )  # non-reasonable default
     names_x0: List[str] = field(default_factory=lambda: ["", ""])
+    # weighting for cross entropy
+    weights_x0: List = field(default_factory=lambda: [1.0, 1.0])
+    weights_y0: List = field(default_factory=lambda: [1.0, 1.0])
     to_reconstruct_x: List = field(default_factory=lambda: ["", int, bool])
     to_reconstruct_y: List = field(default_factory=lambda: ["", int, bool])
 

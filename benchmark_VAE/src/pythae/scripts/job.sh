@@ -1,18 +1,18 @@
 #!/bin/bash
 
-#SBATCH --job-name=eustar
+#SBATCH --job-name=no_sample_f
 #SBATCH --partition=gpu
-#SBATCH --time=18:00:00
+#SBATCH --time=100:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=3
 
 
-#SBATCH --mem=64G
+#SBATCH --mem=40G
 
 #SBATCH --gres=gpu:rtx3090:1
-#SBATCH -o /cluster/work/medinfmk/EUSTAR2/logs/cv.out
+#SBATCH -o /cluster/work/medinfmk/EUSTAR2/logs/cv_no_sample_f.out
 #
 
 

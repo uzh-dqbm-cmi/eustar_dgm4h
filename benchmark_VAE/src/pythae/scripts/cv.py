@@ -72,9 +72,14 @@ if __name__ == "__main__":
         xyt1,
     ) = load_cv(data_path, name=name)
     var_names0 = [var.name for var in (bodies[0].variables + bodies[0].labels)]
+    var_weights0 = [
+        var.class_weight_norm for var in (bodies[0].variables + bodies[0].labels)
+    ]
 
     names_x0 = [vN for i, vN in enumerate(var_names0) if xyt0[i] == "x"]
     names_y0 = [vN for i, vN in enumerate(var_names0) if xyt0[i] == "y"]
+    weights_x0 = [vW for i, vW in enumerate(var_weights0) if xyt0[i] == "x"]
+    weights_y0 = [vW for i, vW in enumerate(var_weights0) if xyt0[i] == "y"]
 
     kinds_x0 = [
         var.kind
@@ -109,15 +114,16 @@ if __name__ == "__main__":
     latent_dim = 22
     model_name = "VAE"
     param_grid = {
-        "dropout": [0.05, 0.1, 0.2],
+        "dropout": [0.05, 0.1, 0.2, 0.4],
         "lstm_hidden_size": [50, 100],
         "num_lstm_layers": [1, 2, 3],
         "hidden_dims_enc": [[100], [100, 100], [100, 100]],
         "hidden_dims_emb_dec": [[20], [100], [100, 100]],
         "hidden_dims_log_var_dec": [[20], [100], [100, 100]],
+        "classif_layers": [[40], [50, 50]],
     }
     combinations = list(itertools.product(*param_grid.values()))
-    combinations = random.sample(combinations, 6)
+    combinations = random.sample(combinations, 30)
     res_df = pd.DataFrame(
         columns=[str(c) for c in combinations],
         index=["fold_" + str(i) for i in range(len(data_train_folds))],
@@ -129,48 +135,48 @@ if __name__ == "__main__":
         hidden_dims_enc,
         hidden_dims_emb_dec,
         hidden_dims_log_var_dec,
+        classif_layers,
     ) in enumerate(combinations):
         predict = True
-        sample_ = True
-        fixed_variance = False
+        sample_ = False
+        fixed_variance = True
         retrodiction = False
-        print(f"Combination {i}")
         # to create classifier configs. Specify each classifier name, variables to predict in y, z dimensions to use and architecture of the classifier
         classifier_config = {
             "lung_inv": {
                 "y_names": ["LUNG_ILD_involvement_or"],
                 "z_dims": np.arange(0, 7),
-                "layers": [40],
+                "layers": classif_layers,
                 "type": "static",
             },
             "lung_stage": {
                 "y_names": ["LUNG_ILD_stage_or"],
                 "z_dims": np.arange(0, 7),
-                "layers": [40],
+                "layers": classif_layers,
                 "type": "static",
             },
             "heart_inv": {
                 "y_names": ["HEART_involvement_or"],
                 "z_dims": np.arange(7, 15),
-                "layers": [40],
+                "layers": classif_layers,
                 "type": "static",
             },
             "heart_stage": {
                 "y_names": ["HEART_stage_or"],
                 "z_dims": np.arange(7, 15),
-                "layers": [40],
+                "layers": classif_layers,
                 "type": "static",
             },
             "arthritis_inv": {
                 "y_names": ["ARTHRITIS_involvement_or"],
                 "z_dims": np.arange(15, 22),
-                "layers": [40],
+                "layers": classif_layers,
                 "type": "static",
             },
             "arthritis_stage": {
                 "y_names": ["ARTHRITIS_stage_or"],
                 "z_dims": np.arange(15, 22),
-                "layers": [40],
+                "layers": classif_layers,
                 "type": "static",
             },
         }
@@ -271,6 +277,8 @@ if __name__ == "__main__":
             splits_y0=splits_y0,
             kinds_y0=kinds_y0,
             names_x0=names_x0,
+            weights_x0=weights_x0,
+            weights_y0=weights_y0,
             to_reconstruct_x=to_reconstruct_x,
             to_reconstruct_y=to_reconstruct_y,
             device=device,
@@ -280,16 +288,19 @@ if __name__ == "__main__":
         )
 
         for k in range(len(data_train_folds)):
+            print(f"Combination {i} fold {k}")
 
-            config = BaseTrainerConfig(
-                output_dir="samp_"
+            output_dir = (
+                "samp_"
                 + str(sample_)
                 + "pred_"
                 + str(predict)
                 + "var_fixed"
                 + str(fixed_variance)
                 + "_cv/"
-                + str(k),
+            )
+            config = BaseTrainerConfig(
+                output_dir=output_dir + str(k),
                 learning_rate=1e-3,
                 batch_size=100,
                 num_epochs=80,
@@ -324,17 +335,15 @@ if __name__ == "__main__":
             )
 
             pipeline = TrainingPipeline(training_config=config, model=model)
-            pipeline(train_data=data_train_folds[k], eval_data=data_valid_folds[k])
-            res_df.iloc[k, i] = pipeline.trainer.eval_results["best_eval_loss"]
+            try:
+                pipeline(train_data=data_train_folds[k], eval_data=data_valid_folds[k])
+                res_df.iloc[k, i] = pipeline.trainer.eval_results["best_eval_loss"]
+            except Exception as e:
+                print(e)
+                res_df.iloc[k, i] = np.nan
+                continue
 
-    res_df.to_csv(
-        "samp_"
-        + str(sample_)
-        + "pred_"
-        + str(predict)
-        + "var_fixed"
-        + str(fixed_variance)
-        + "_cv/cv_results.csv"
-    )
+    res_df.loc["mean"] = res_df.mean(axis=0)
+    res_df.to_csv(output_dir + "cv_results.csv")
 
     print("End")

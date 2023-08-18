@@ -173,7 +173,7 @@ class Body:
 
 
 if __name__ == "__main__":
-    local = False
+    local = True
     name = "_ml4h"
     cv = True
     # name = "_allcont"
