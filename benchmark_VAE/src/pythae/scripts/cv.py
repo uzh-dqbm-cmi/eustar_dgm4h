@@ -138,7 +138,7 @@ if __name__ == "__main__":
         classif_layers,
     ) in enumerate(combinations):
         predict = True
-        sample_ = False
+        sample_ = True
         fixed_variance = True
         retrodiction = False
         # to create classifier configs. Specify each classifier name, variables to predict in y, z dimensions to use and architecture of the classifier
@@ -303,7 +303,7 @@ if __name__ == "__main__":
                 output_dir=output_dir + str(k),
                 learning_rate=1e-3,
                 batch_size=100,
-                num_epochs=80,
+                num_epochs=80,  # 80
                 customized=True,  # if we use the cusomized data loader for different sized patients
             )
             if retrodiction:

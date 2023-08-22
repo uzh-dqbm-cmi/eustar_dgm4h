@@ -604,7 +604,7 @@ class Indep_MLP_Decoder(BaseDecoder):
         if self.fixed_variance:
             output = ModelOutput(
                 reconstruction=self.embedding_rec(h1),
-                reconstruction_log_var=torch.ones(
+                reconstruction_log_var=torch.zeros(
                     (len(z), self.out_dim), device=self.device
                 ),
             )
