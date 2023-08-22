@@ -952,10 +952,15 @@ class BetaVAEgp(VAE):
 
             elif kinds0[i] == "categorical":
                 if to_reconstruct[i][2]:
+                    # dimension_loss = F.cross_entropy(
+                    #     out,
+                    #     target_splitted[i],
+                    #     weight=torch.tensor(weights0[i], device=self.device),
+                    #     reduction="none",
+                    # ).unsqueeze(1)
                     dimension_loss = F.cross_entropy(
                         out,
                         target_splitted[i],
-                        weight=torch.tensor(weights0[i], device=self.device),
                         reduction="none",
                     ).unsqueeze(1)
                     ce_loss = dimension_loss
@@ -970,11 +975,16 @@ class BetaVAEgp(VAE):
                     # dimension_loss = F.binary_cross_entropy(
                     #     torch.sigmoid(out), target_splitted[i], reduction="none"
                     # )
+                    # dimension_loss = F.binary_cross_entropy_with_logits(
+                    #     out,
+                    #     target_splitted[i],
+                    #     reduction="none",
+                    #     pos_weight=torch.tensor(weights0[i], device=self.device),
+                    # )
                     dimension_loss = F.binary_cross_entropy_with_logits(
                         out,
                         target_splitted[i],
                         reduction="none",
-                        pos_weight=torch.tensor(weights0[i], device=self.device),
                     )
                     ce_loss = dimension_loss
                 else:

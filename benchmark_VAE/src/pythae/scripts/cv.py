@@ -123,7 +123,7 @@ if __name__ == "__main__":
         "classif_layers": [[40], [50, 50]],
     }
     combinations = list(itertools.product(*param_grid.values()))
-    combinations = random.sample(combinations, 30)
+    combinations = random.sample(combinations, 25)
     res_df = pd.DataFrame(
         columns=[str(c) for c in combinations],
         index=["fold_" + str(i) for i in range(len(data_train_folds))],
@@ -139,7 +139,7 @@ if __name__ == "__main__":
     ) in enumerate(combinations):
         predict = True
         sample_ = True
-        fixed_variance = True
+        fixed_variance = False
         retrodiction = False
         # to create classifier configs. Specify each classifier name, variables to predict in y, z dimensions to use and architecture of the classifier
         classifier_config = {

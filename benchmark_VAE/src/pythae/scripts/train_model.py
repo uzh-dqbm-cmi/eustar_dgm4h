@@ -47,7 +47,7 @@ if __name__ == "__main__":
     random.seed(seed)
     torch.manual_seed(seed)
     np.random.seed(seed)
-    local = False
+    local = True
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if local:
         data_path = "/home/cctrotte/krauthammer/eustar_clean/fake_data/processed/"
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     latent_dim = 22
     model_name = "VAE"
     best_params = best = {
-        "samp_true_fixed_var_true": (0.05, 100, 3, [100, 100], [100, 100], [20], [40]),
+        "samp_true_fixed_var_true": (0.05, 100, 1, [100, 100], [100], [100], [40]),
         "samp_true_fixed_var_false": (0.05, 100, 3, [100, 100], [100, 100], [20], [40]),
         "samp_false_fixed_var_true": (0.05, 100, 1, [100, 100], [100], [100], [40]),
         "samp_false_fixed_var_false": (0.1, 100, 1, [100, 100], [100], [100], [40]),
@@ -131,7 +131,7 @@ if __name__ == "__main__":
 
     predict = True
     sample_ = False
-    fixed_variance = True
+    fixed_variance = False
     retrodiction = False
     # to create classifier configs. Specify each classifier name, variables to predict in y, z dimensions to use and architecture of the classifier
     classifier_config = {
@@ -277,58 +277,45 @@ if __name__ == "__main__":
         progression=False,
     )
 
-    for k in range(len(data_train_folds)):
-        print(f"Combination {i} fold {k}")
+    k = 0
+    print(f"Combination {i} fold {k}")
 
-        output_dir = (
-            "samp_"
-            + str(sample_)
-            + "pred_"
-            + str(predict)
-            + "var_fixed"
-            + str(fixed_variance)
-            + "_cv_final/"
-        )
-        config = BaseTrainerConfig(
-            output_dir=output_dir + str(k),
-            learning_rate=1e-3,
-            batch_size=100,
-            num_epochs=80,
-            customized=True,  # if we use the cusomized data loader for different sized patients
-        )
-        if retrodiction:
-            my_encoder = LSTM_Retrodiction_Encoder(encoder_config)
-        else:
-            my_encoder = LSTM_Encoder(encoder_config)
-        # my_encoder = Indep_MLP_Encoder(model_config)
-        if decoder_config.lstm_:
-            my_decoder = LSTM_Retrodiction_Decoder(decoder_config)
-        else:
-            my_decoder = Indep_MLP_Decoder(decoder_config)
+    output_dir = "my_model/"
+    config = BaseTrainerConfig(
+        output_dir=output_dir + str(k),
+        learning_rate=1e-3,
+        batch_size=100,
+        num_epochs=1,
+        customized=True,  # if we use the cusomized data loader for different sized patients
+    )
+    if retrodiction:
+        my_encoder = LSTM_Retrodiction_Encoder(encoder_config)
+    else:
+        my_encoder = LSTM_Encoder(encoder_config)
+    # my_encoder = Indep_MLP_Encoder(model_config)
+    if decoder_config.lstm_:
+        my_decoder = LSTM_Retrodiction_Decoder(decoder_config)
+    else:
+        my_decoder = Indep_MLP_Decoder(decoder_config)
 
-        if prior_config is not None:
-            prior_latent = PriorLatent(prior_config)
-        else:
-            prior_latent = None
+    if prior_config is not None:
+        prior_latent = PriorLatent(prior_config)
+    else:
+        prior_latent = None
 
-        my_classifiers = [
-            Guidance_Classifier(config) for config in model_config.classifier_config
-        ]
-        # my_classifier = Guidance_Classifier(model_config)
+    my_classifiers = [
+        Guidance_Classifier(config) for config in model_config.classifier_config
+    ]
+    # my_classifier = Guidance_Classifier(model_config)
 
-        model = BetaVAEgpCondInd(
-            model_config=model_config,
-            encoder=my_encoder,
-            decoder=my_decoder,
-            classifiers=my_classifiers,
-            prior_latent=prior_latent,
-        )
+    model = BetaVAEgpCondInd(
+        model_config=model_config,
+        encoder=my_encoder,
+        decoder=my_decoder,
+        classifiers=my_classifiers,
+        prior_latent=prior_latent,
+    )
 
-        pipeline = TrainingPipeline(training_config=config, model=model)
-        try:
-            pipeline(train_data=data_train_folds[k], eval_data=data_valid_folds[k])
-        except Exception as e:
-            print(e)
-            continue
+    pipeline = TrainingPipeline(training_config=config, model=model)
 
     print("End")

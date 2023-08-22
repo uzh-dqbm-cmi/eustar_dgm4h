@@ -15,392 +15,6 @@ from pythae.ssc.plots import *
 import imageio as iio
 import os
 
-# def create_random_tensor(n):
-#     tensor = torch.zeros(n)  # Initialize tensor with zeros
-#     random_index = random.randint(
-#         0, n - 1
-#     )  # Generate a random index within the range of n
-#     tensor[random_index] = 1  # Set the value at the random index to 1
-#     return tensor
-
-
-# def create_one_tensor(n):
-#     tensor = torch.zeros(n)  # Initialize tensor with zeros
-#     tensor[0] = 1  # Set the value index to 1
-#     return tensor
-
-
-# def fill_tensor(data, mask, cat=False):
-#     filled_data = torch.zeros_like(data)  # Initialize the filled tensor with zeros
-#     if cat:
-#         filled_data[0] = create_one_tensor(data.shape[1])
-#     else:
-#         filled_data[0] = data[0]  # Copy the first row of data as it is
-
-#     # Iterate over columns and rows starting from the second row
-#     for i in range(1, data.size(0)):
-#         filled_data[i] = torch.where(mask[i] == 1, data[i], filled_data[i - 1])
-
-#     return filled_data
-
-
-# def get_result_df(
-#     model,
-#     body,
-#     splits_x0,
-#     names_x0,
-#     kinds_x0,
-#     out2,
-#     data_x,
-#     data_x_recon,
-#     data_x_splitted,
-#     non_missing_x,
-#     non_missing_x_splitted,
-#     non_missing_x_recon,
-#     delta_t_resc,
-#     num_rec_for_pred,
-# ):
-#     if model.sample_z:
-#         res_matrix, probs_matrix, res_list = body.decode_preds(
-#             out2.recon_x, splits_x0, names_x0
-#         )
-#         res_list_samples = body.decode_preds(out2.recon_x, splits_x0, names_x0)[2]
-#     else:
-#         res_matrix, probs_matrix, res_list = body.decode_preds(
-#             out2.recon_m, splits_x0, names_x0
-#         )
-#         res_list_samples = body.decode_preds(out2.recon_m, splits_x0, names_x0)[2]
-#     ground_truth = body.decode(data_x_recon, splits_x0, names_x0)
-#     # def count_within_range(x_true, x_pred, x_var_pred):
-#     #     lower_bound = x_pred - 2 * torch.sqrt(x_var_pred)
-#     #     upper_bound = x_pred + 2 * torch.sqrt(x_var_pred)
-#     #     within_range = (x_true >= lower_bound) & (x_true <= upper_bound)
-#     #     count = torch.sum(within_range).item()
-
-#     #     return count
-#     list_ = np.concatenate(([0], np.cumsum(splits_x0)))
-#     patient_specific_baseline = []
-#     for index, elem in enumerate(list_[:-1]):
-#         naive_all = []
-#         if kinds_x0[index] == "continuous":
-#             for pat in range(len(data_x_splitted)):
-#                 new_naive = data_x_splitted[pat][:, elem : list_[index + 1]].clone()
-#                 mean_cohort = torch.mean(data_x[non_missing_x[:, index] > 0, index])
-#                 mask = non_missing_x_splitted[pat][:, elem : list_[index + 1]] > 0
-#                 new_naive[~mask] = mean_cohort
-#                 # new_naive = torch.cat([torch.full(new_naive.shape, mean_cohort),torch.full(new_naive.shape, mean_cohort), torch.cat([new_naive[index].repeat(new_naive.shape) for index in range(len(new_naive)-1)])])
-#                 new_naive = torch.cat(
-#                     [
-#                         torch.full(new_naive.shape, mean_cohort),
-#                         torch.full(new_naive.shape, mean_cohort),
-#                         torch.cat(
-#                             [
-#                                 torch.cat(
-#                                     [
-#                                         torch.tensor([[mean_cohort]]),
-#                                         new_naive[:index],
-#                                         new_naive[index].repeat(
-#                                             len(new_naive) - index - 1, 1
-#                                         ),
-#                                     ],
-#                                     dim=0,
-#                                 )
-#                                 for index in range(len(new_naive) - 1)
-#                             ]
-#                         ),
-#                     ]
-#                 )
-#                 naive_all.append(new_naive)
-#         else:
-#             for pat in range(len(data_x_splitted)):
-#                 new_naive = data_x_splitted[pat][:, elem : list_[index + 1]].clone()
-#                 mean_cohort = torch.mean(data_x[non_missing_x[:, index] > 0, index])
-#                 mask = (
-#                     non_missing_x_splitted[pat][:, elem : list_[index + 1]] > 0
-#                 ).any(dim=1)
-#                 new_naive[~mask] = create_one_tensor(new_naive.shape[1])
-#                 # new_naive = torch.cat([create_one_tensor(new_naive.shape[1]).repeat(len(new_naive), 1), create_one_tensor(new_naive.shape[1]).repeat(len(new_naive), 1), torch.cat([new_naive[index].repeat(len(new_naive), 1) for index in range(len(new_naive)-1)])])
-#                 new_naive = torch.cat(
-#                     [
-#                         create_one_tensor(new_naive.shape[1]).repeat(len(new_naive), 1),
-#                         create_one_tensor(new_naive.shape[1]).repeat(len(new_naive), 1),
-#                         torch.cat(
-#                             [
-#                                 torch.cat(
-#                                     [
-#                                         create_one_tensor(new_naive.shape[1]).reshape(
-#                                             1, -1
-#                                         ),
-#                                         new_naive[:index],
-#                                         new_naive[index].repeat(
-#                                             len(new_naive) - index - 1, 1
-#                                         ),
-#                                     ],
-#                                     dim=0,
-#                                 )
-#                                 for index in range(len(new_naive) - 1)
-#                             ]
-#                         ),
-#                     ]
-#                 )
-#                 naive_all.append(new_naive)
-#         patient_specific_baseline.append(torch.cat(naive_all))
-#     patient_specific_baseline = torch.cat(patient_specific_baseline, dim=1)
-#     patient_specific_baseline_ff = []
-#     for index, elem in enumerate(list_[:-1]):
-#         naive_all = []
-#         if kinds_x0[index] == "continuous":
-#             for pat in range(len(data_x_splitted)):
-#                 new_naive = data_x_splitted[pat][:, elem : list_[index + 1]].clone()
-#                 mean_cohort = torch.mean(data_x[non_missing_x[:, index] > 0, index])
-#                 mask = non_missing_x_splitted[pat][:, elem : list_[index + 1]] > 0
-#                 new_naive = fill_tensor(new_naive, mask)
-#                 new_naive = torch.cat(
-#                     [
-#                         torch.full(new_naive.shape, mean_cohort),
-#                         torch.full(new_naive.shape, mean_cohort),
-#                         torch.cat(
-#                             [
-#                                 torch.cat(
-#                                     [
-#                                         torch.tensor([[mean_cohort]]),
-#                                         new_naive[:index],
-#                                         new_naive[index].repeat(
-#                                             len(new_naive) - index - 1, 1
-#                                         ),
-#                                     ],
-#                                     dim=0,
-#                                 )
-#                                 for index in range(len(new_naive) - 1)
-#                             ]
-#                         ),
-#                     ]
-#                 )
-#                 naive_all.append(new_naive)
-#         else:
-#             for pat in range(len(data_x_splitted)):
-#                 new_naive = data_x_splitted[pat][:, elem : list_[index + 1]].clone()
-#                 mean_cohort = torch.mean(data_x[non_missing_x[:, index] > 0, index])
-#                 mask = (
-#                     (non_missing_x_splitted[pat][:, elem : list_[index + 1]] > 0)
-#                     .any(dim=1)
-#                     .reshape(-1, 1)
-#                     .repeat(new_naive.shape)
-#                 )
-#                 new_naive = fill_tensor(new_naive, mask, cat=True)
-#                 new_naive = torch.cat(
-#                     [
-#                         create_one_tensor(new_naive.shape[1]).repeat(len(new_naive), 1),
-#                         create_one_tensor(new_naive.shape[1]).repeat(len(new_naive), 1),
-#                         torch.cat(
-#                             [
-#                                 torch.cat(
-#                                     [
-#                                         create_one_tensor(new_naive.shape[1]).reshape(
-#                                             1, -1
-#                                         ),
-#                                         new_naive[:index],
-#                                         new_naive[index].repeat(
-#                                             len(new_naive) - index - 1, 1
-#                                         ),
-#                                     ],
-#                                     dim=0,
-#                                 )
-#                                 for index in range(len(new_naive) - 1)
-#                             ]
-#                         ),
-#                     ]
-#                 )
-#                 naive_all.append(new_naive)
-
-#         patient_specific_baseline_ff.append(torch.cat(naive_all))
-#     patient_specific_baseline_ff = torch.cat(patient_specific_baseline_ff, dim=1)
-#     cat_baseline_ff = body.decode(patient_specific_baseline_ff, splits_x0, names_x0)
-#     cat_baseline = body.decode(patient_specific_baseline, splits_x0, names_x0)
-#     time_flags = [
-#         (0, 0),
-#         (0, 1),
-#         (1, 2),
-#         (2, 3),
-#         (3, 4),
-#         (4, 5),
-#         (5, 6),
-#         (6, 7),
-#         (7, 8),
-#         (8, 9),
-#         (9, 10),
-#         (10, 11),
-#         (11, 12),
-#     ]
-#     # time_flags = [(-7,-6), (-6, -5), (-5,-4), (-4,-3), (-3,-2), (-2,-1), (-1, 0), (0,0)]
-
-#     # for i, sample in enumerate(samples):
-#     dfs_cont = {
-#         name: pd.DataFrame(
-#             columns=["count", "mae", "mae_naive", "mae_pat_spec", "mae_pat_spec_ff"],
-#             index=time_flags,
-#         )
-#         for i, name in enumerate(names_x0)
-#         if kinds_x0[i] == "continuous"
-#     }
-#     dfs_cat = {
-#         name: pd.DataFrame(
-#             columns=["acc", "naive acc", "pat_spec_ff", "pat_spec"], index=time_flags
-#         )
-#         for i, name in enumerate(names_x0)
-#         if kinds_x0[i] != "continuous"
-#     }
-#     dfs_cont_scaled = {
-#         name: pd.DataFrame(
-#             columns=["count", "mae", "mae_naive", "mae_pat_spec", "mae_pat_spec_ff"],
-#             index=time_flags,
-#         )
-#         for i, name in enumerate(names_x0)
-#         if kinds_x0[i] == "continuous"
-#     }
-#     for j, interv in enumerate(time_flags):
-#         if interv[0] == interv[1]:
-#             to_keep = torch.tensor(
-#                 (delta_t_resc == interv[0]) & (num_rec_for_pred > 0)
-#             ).flatten()
-#         else:
-#             to_keep = torch.tensor(
-#                 (delta_t_resc > interv[0])
-#                 & (delta_t_resc <= interv[1])
-#                 & (num_rec_for_pred > 0)
-#             ).flatten()
-#         print(to_keep.count_nonzero().item())
-#         list_ = np.concatenate(([0], np.cumsum(splits_x0)))
-#         for index, elem in enumerate(list_[:-1]):
-#             name = names_x0[index]
-#             print(name)
-#             if kinds_x0[index] == "continuous":
-#                 data_sc = data_x_recon[
-#                     (non_missing_x_recon[:, elem : list_[index + 1]] > 0).flatten(),
-#                     elem : list_[index + 1],
-#                 ]
-#                 all_targets = body.get_var_by_name(name).decode(data_sc)
-#                 print(all_targets.mean())
-#                 mask_ = non_missing_x_recon[to_keep, elem : list_[index + 1]] > 0
-#                 recon = res_list_samples[index][0][to_keep][mask_].detach()
-#                 true = data_x_recon[to_keep, elem : list_[index + 1]][mask_].detach()
-#                 pat_baseline = patient_specific_baseline[
-#                     to_keep, elem : list_[index + 1]
-#                 ][mask_].detach()
-#                 pat_baseline_ff = patient_specific_baseline_ff[
-#                     to_keep, elem : list_[index + 1]
-#                 ][mask_].detach()
-
-#                 if len(recon) > 0:
-#                     recon_resc = body.get_var_by_name(name).decode(recon.reshape(-1, 1))
-#                     true_resc = body.get_var_by_name(name).decode(true.reshape(-1, 1))
-#                     patient_specific_baseline_resc = body.get_var_by_name(name).decode(
-#                         pat_baseline.reshape(-1, 1)
-#                     )
-#                     patient_specific_baseline_ff_resc = body.get_var_by_name(
-#                         name
-#                     ).decode(pat_baseline_ff.reshape(-1, 1))
-#                     mse = sum((recon_resc - true_resc) ** 2) / len(recon)
-#                     mae = sum(abs(recon_resc - true_resc)) / len(recon)
-#                     mae_naive = sum(abs(np.mean(all_targets) - true_resc)) / len(
-#                         true_resc
-#                     )
-#                     mae_pat_spec = sum(
-#                         abs(patient_specific_baseline_resc - true_resc)
-#                     ) / len(true_resc)
-#                     mae_pat_spec_ff = sum(
-#                         abs(patient_specific_baseline_ff_resc - true_resc)
-#                     ) / len(true_resc)
-#                     mse_sc = sum((recon - true) ** 2) / len(recon)
-#                     mae_sc = sum(abs(recon - true)) / len(recon)
-#                     mae_naive_sc = sum(abs(np.mean(np.array(data_sc)) - true)) / len(
-#                         true
-#                     )
-#                     mae_pat_spec_sc = sum(abs(pat_baseline - true)) / len(true)
-#                     mae_pat_spec_ff_sc = sum(abs(pat_baseline_ff - true)) / len(true)
-
-#                     dfs_cont[names_x0[index]].iloc[j]["count"] = len(recon)
-#                     dfs_cont[names_x0[index]].iloc[j]["mae"] = mae.item()
-#                     dfs_cont[names_x0[index]].iloc[j]["mae_naive"] = mae_naive.item()
-#                     dfs_cont[names_x0[index]].iloc[j][
-#                         "mae_pat_spec"
-#                     ] = mae_pat_spec.item()
-#                     dfs_cont[names_x0[index]].iloc[j][
-#                         "mae_pat_spec_ff"
-#                     ] = mae_pat_spec_ff.item()
-#                     dfs_cont_scaled[names_x0[index]].iloc[j]["count"] = len(recon)
-#                     dfs_cont_scaled[names_x0[index]].iloc[j]["mae"] = mae_sc.item()
-#                     dfs_cont_scaled[names_x0[index]].iloc[j][
-#                         "mae_naive"
-#                     ] = mae_naive_sc.item()
-#                     dfs_cont_scaled[names_x0[index]].iloc[j][
-#                         "mae_pat_spec"
-#                     ] = mae_pat_spec_sc.item()
-#                     dfs_cont_scaled[names_x0[index]].iloc[j][
-#                         "mae_pat_spec_ff"
-#                     ] = mae_pat_spec_ff_sc.item()
-#                 else:
-#                     dfs_cont[names_x0[index]].iloc[j]["count"] = 0
-#                     dfs_cont[names_x0[index]].iloc[j]["mae"] = np.nan
-#                     dfs_cont[names_x0[index]].iloc[j]["mae_naive"] = np.nan
-#                     dfs_cont[names_x0[index]].iloc[j]["mae_pat_spec"] = np.nan
-#                     dfs_cont[names_x0[index]].iloc[j]["mae_pat_spec_ff"] = np.nan
-
-#             elif kinds_x0[index] != "continuous":
-#                 all_targets = ground_truth[1][index][
-#                     (non_missing_x_recon[:, elem : list_[index + 1]] > 0).any(dim=1)
-#                 ]
-#                 mask_ = (non_missing_x_recon[to_keep, elem : list_[index + 1]] > 0).any(
-#                     dim=1
-#                 )
-#                 recon = res_list_samples[index][0][to_keep]
-#                 true = ground_truth[1][index][to_keep][mask_]
-#                 pat_spec_ff = cat_baseline_ff[1][index][to_keep][mask_]
-#                 pat_spec = cat_baseline[1][index][to_keep][mask_]
-
-#                 recon = body.get_var_by_name(names_x0[index]).get_categories(recon)[
-#                     mask_
-#                 ]
-#                 if len(recon) > 0:
-#                     acc = accuracy_score(true.flatten().astype(float), recon)
-#                     value, counts = np.unique(all_targets.flatten(), return_counts=True)
-#                     naive = np.random.choice(
-#                         value, size=len(true.flatten()), p=counts / sum(counts)
-#                     )
-#                     naive_acc = accuracy_score(
-#                         naive.astype(float), true.flatten().astype(float)
-#                     )
-#                     pat_spec_acc_ff = accuracy_score(
-#                         pat_spec_ff, true.flatten().astype(float)
-#                     )
-#                     pat_spec_acc = accuracy_score(
-#                         pat_spec, true.flatten().astype(float)
-#                     )
-
-#                     print(f"acc {acc}")
-#                     print(f"acc naive {naive_acc}")
-#                     # print(f'{classification_report(true.flatten().astype(float), recon)}')
-#                     dfs_cat[names_x0[index]].iloc[j]["acc"] = acc
-#                     dfs_cat[names_x0[index]].iloc[j]["naive acc"] = naive_acc
-#                     dfs_cat[names_x0[index]].iloc[j]["pat_spec_ff"] = pat_spec_acc_ff
-#                     dfs_cat[names_x0[index]].iloc[j]["pat_spec"] = pat_spec_acc
-#                 else:
-#                     dfs_cat[names_x0[index]].iloc[j]["count"] = 0
-#                     dfs_cat[names_x0[index]].iloc[j]["mae"] = np.nan
-#                     dfs_cat[names_x0[index]].iloc[j]["mae_naive"] = np.nan
-#                     dfs_cat[names_x0[index]].iloc[j]["mae_pat_spec"] = np.nan
-#                     dfs_cat[names_x0[index]].iloc[j]["mae_pat_spec_ff"] = np.nan
-#     tmp = pd.DataFrame(
-#         np.nanmean(
-#             np.array([elem for elem in dfs_cont_scaled.values()], dtype=np.float64),
-#             axis=0,
-#         ),
-#         index=dfs_cont_scaled["Forced Vital Capacity (FVC - % predicted)"].index,
-#         columns=dfs_cont_scaled["Forced Vital Capacity (FVC - % predicted)"].columns,
-#     )
-
-#     return tmp
-
 
 class EvalPatient:
     def __init__(
@@ -1308,7 +922,7 @@ class EvaluationDataset(EvalPatient):
             "-.",
             label="previous value for patient",
         )
-        ax.plot(x_axis, self.df_res_cat_acc["naive acc"], "-.", label="cohort mean")
+        ax.plot(x_axis, self.df_res_cat_acc["naive acc"], "-.", label="cohort baseline")
         ax.set_title("Average accross all (scaled) accuracy")
         ax.set_ylabel("Accuracy")
         ax.set_xlabel("years")
@@ -1325,7 +939,7 @@ class EvaluationDataset(EvalPatient):
             "-.",
             label="previous value for patient",
         )
-        ax.plot(x_axis, self.df_res_cat_f1["naive f1"], "-.", label="cohort mean")
+        ax.plot(x_axis, self.df_res_cat_f1["naive f1"], "-.", label="cohort baseline")
         ax.set_title("Average accross all (scaled) f1")
         ax.set_ylabel("f1")
         ax.set_xlabel("years")
@@ -1360,6 +974,9 @@ class EvaluationDataset(EvalPatient):
                     "acc_base",
                     "f1_macro_base",
                     "f1_weighted_base",
+                    "acc_naive",
+                    "f1_macro_naive",
+                    "f1_weighted_naive",
                 ],
             )
             for name in self.names_y0
@@ -1383,6 +1000,10 @@ class EvaluationDataset(EvalPatient):
                 true_recon = self.ground_truth_y[0][to_keep, i][mask_]
                 baseline_ = self.cat_baseline_y[to_keep, i][mask_]
                 model_recon = self.predicted_cats_y[to_keep, i][mask_]
+                value, counts = np.unique(true_recon.flatten(), return_counts=True)
+                naive = np.random.choice(
+                    value, size=len(true_recon.flatten()), p=counts / sum(counts)
+                )
                 name = self.names_y0[i]
                 print(name)
                 print(classification_report(true_recon, model_recon))
@@ -1402,6 +1023,13 @@ class EvaluationDataset(EvalPatient):
                 df[name].iloc[j]["f1_weighted_base"] = f1_score(
                     true_recon, baseline_, average="weighted"
                 )
+                df[name].iloc[j]["acc_naive"] = accuracy_score(true_recon, naive)
+                df[name].iloc[j]["f1_macro_naive"] = f1_score(
+                    true_recon, naive, average="macro"
+                )
+                df[name].iloc[j]["f1_weighted_naive"] = f1_score(
+                    true_recon, naive, average="weighted"
+                )
 
         self.df_res_y = df
         # plot
@@ -1415,6 +1043,12 @@ class EvaluationDataset(EvalPatient):
                 tmp["f1_macro_base"],
                 "-.",
                 label="previous value for patient",
+            )
+            ax.plot(
+                range(len(tmp)),
+                tmp["f1_macro_naive"],
+                "-.",
+                label="cohort baseline",
             )
             ax.set_title(name)
             ax.set_ylabel("Macro F1")
@@ -1431,6 +1065,12 @@ class EvaluationDataset(EvalPatient):
                 "-.",
                 label="previous value for patient",
             )
+            ax.plot(
+                range(len(tmp)),
+                tmp["f1_weighted_naive"],
+                "-.",
+                label="cohort baseline",
+            )
             ax.set_title(name)
             ax.set_ylabel("Weighted F1")
             ax.set_xlabel("years")
@@ -1443,6 +1083,7 @@ class EvaluationDataset(EvalPatient):
             ax.plot(
                 range(len(tmp)), tmp.acc_base, "-.", label="previous value for patient"
             )
+            ax.plot(range(len(tmp)), tmp.acc_naive, "-.", label="cohort baseline")
             ax.set_title(name)
             ax.set_ylabel("Accuracy")
             ax.set_xlabel("years")
@@ -1455,6 +1096,7 @@ class EvaluationDataset(EvalPatient):
             ax.plot(
                 range(len(tmp)), tmp.acc_base, "-.", label="previous value for patient"
             )
+            ax.plot(range(len(tmp)), tmp.acc_naive, "-.", label="cohort baseline")
             ax.set_title(name)
             ax.set_ylabel("Accuracy")
             ax.set_xlabel("years")
@@ -1546,8 +1188,12 @@ class EvaluationDataset(EvalPatient):
                 fig, ax = plt.subplots()
                 for pat in indices_to_plot:
                     ax.plot(
-                        self.times_splitted[pat],
-                        self.prior_preds[pat][:, index_x].detach(),
+                        self.body.get_var_by_name("time [years]").decode(
+                            self.times_splitted[pat]
+                        ),
+                        self.body.get_var_by_name(name_x).decode(
+                            self.prior_preds[pat][:, index_x].detach().reshape(-1, 1)
+                        ),
                         color=colors[tuple(array_[pat])],
                         label=category_names[tuple(array_[pat])],
                     )
@@ -1555,7 +1201,9 @@ class EvaluationDataset(EvalPatient):
                 handles, labels = plt.gca().get_legend_handles_labels()
                 by_label = dict(zip(labels, handles))
                 plt.legend(by_label.values(), by_label.keys())
-                plt.title(name_x + " race")
+                plt.title(name_x)
+                ax.set_xlabel("time [years]")
+                ax.set_ylabel("Value")
 
         # plots for other static
         for i_x, index_x in enumerate(list_x[:-1]):
@@ -1626,11 +1274,19 @@ class EvaluationDataset(EvalPatient):
 
                             if self.non_missing_s_splitted[pat][0][index_s] > 0:
                                 line = ax.plot(
-                                    self.times_splitted[pat],
-                                    self.prior_preds[pat][:, index_x].detach(),
+                                    self.body.get_var_by_name("time [years]").decode(
+                                        self.times_splitted[pat]
+                                    ),
+                                    self.body.get_var_by_name(name_x).decode(
+                                        self.prior_preds[pat][:, index_x]
+                                        .detach()
+                                        .reshape(-1, 1)
+                                    ),
                                     c=cmap(norm(c_array_pat)),
                                 )
-                        plt.title(name_x + " " + name_s)
+                        plt.title(name_x)
+                        ax.set_xlabel("time [years]")
+                        ax.set_ylabel("Value")
                         # Create a ScalarMappable using the colormap and norm
                         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
                         sm.set_array([])  # Set an empty array
@@ -1640,5 +1296,164 @@ class EvaluationDataset(EvalPatient):
                             sm,
                             ax=ax,
                         )
-                        cbar.ax.set_ylabel("Value")
+                        cbar.ax.set_ylabel(name_s)
+        return
+
+    def plot_prior_preds_y(self):
+        preds_y_grouped = torch.split(
+            self.probs_matrix_y, [elem * (elem + 1) for elem in self.splits]
+        )
+        preds_y_grouped = [
+            torch.split(elem, [self.splits[index]] * (self.splits[index] + 1))
+            for index, elem in enumerate(preds_y_grouped)
+        ]
+        self.prior_preds_y = torch.split(
+            torch.cat([preds_y_grouped[i][0] for i in range(len(preds_y_grouped))]),
+            self.splits,
+        )
+        list_y = np.concatenate(([0], np.cumsum(self.splits_y0)))
+        combinations = list(set(map(tuple, np.array(self.data_s[:, 2:7]))))
+        num_combinations = len(combinations)
+        colors = cm.tab20(np.linspace(0, 1, num_combinations))
+        races = [
+            "Race white",
+            "Hispanic",
+            "Any other white",
+            "Race asian",
+            "Race black",
+        ]
+        category_names = [
+            [
+                elem + " "
+                for index, elem in enumerate(races)
+                if combinations[j][index] == 1
+            ]
+            for j in range(num_combinations)
+        ]
+        category_names = {
+            combinations[i]: category_names[i] for i in range(num_combinations)
+        }
+        array_ = np.array(self.data_s[:, 2:7])
+        colors = {combinations[i]: colors[i] for i in range(num_combinations)}
+        # random subset
+        indices_to_plot = random.sample(range(len(self.splits)), 100)
+        # plots for race
+        for i_y, index_y in enumerate(list_y[:-1]):
+            name_y = self.names_y0[i_y]
+            if name_y in [
+                "LUNG_ILD_involvement_or",
+                "HEART_involvement_or",
+                "ARTHRITIS_involvement_or",
+            ]:
+                fig, ax = plt.subplots()
+                for pat in indices_to_plot:
+                    ax.plot(
+                        self.body.get_var_by_name("time [years]").decode(
+                            self.times_splitted[pat]
+                        ),
+                        self.prior_preds_y[pat][:, index_y].detach(),
+                        color=colors[tuple(array_[pat])],
+                        label=category_names[tuple(array_[pat])],
+                    )
+                ax.set(ylim=(0, 1))
+                ax.set_ylabel("Probability")
+                ax.set_xlabel("time [years]")
+
+                handles, labels = plt.gca().get_legend_handles_labels()
+                by_label = dict(zip(labels, handles))
+                plt.legend(by_label.values(), by_label.keys())
+                plt.title(name_y)
+
+        for i_y, index_y in enumerate(list_y[:-1]):
+            name_y = self.names_y0[i_y]
+            if name_y in [
+                "LUNG_ILD_involvement_or",
+                "HEART_involvement_or",
+                "ARTHRITIS_involvement_or",
+            ]:
+                for index_s, name_s in enumerate(self.names_s0):
+                    if name_s not in races:
+
+                        fig, ax = plt.subplots()
+                        if name_s in [
+                            "Date of birth",
+                            "Onset of first non-Raynaud?s of the disease",
+                        ]:
+
+                            c_array = np.array(
+                                self.body.get_var_by_name(name_s)
+                                .decode(self.data_s[:, index_s].reshape(-1, 1))
+                                .flatten()
+                                .astype("datetime64[ns]")
+                                .astype("datetime64[Y]")
+                                .astype(int)
+                                + 1970,
+                                dtype=np.float32,
+                            )
+                        else:
+                            c_array = np.array(
+                                self.body.get_var_by_name(name_s)
+                                .decode(self.data_s[:, index_s].reshape(-1, 1))
+                                .flatten(),
+                                dtype=np.float32,
+                            )
+
+                        cmap = plt.cm.get_cmap("viridis")
+                        norm = plt.Normalize(
+                            vmin=np.nanmin(c_array), vmax=np.nanmax(c_array)
+                        )
+
+                        for pat in indices_to_plot:
+                            if name_s in [
+                                "Date of birth",
+                                "Onset of first non-Raynaud?s of the disease",
+                            ]:
+                                c_array_pat = np.array(
+                                    self.body.get_var_by_name(name_s)
+                                    .decode(
+                                        self.data_s_splitted[pat][0, index_s].reshape(
+                                            -1, 1
+                                        )
+                                    )
+                                    .flatten()
+                                    .astype("datetime64[ns]")
+                                    .astype("datetime64[Y]")
+                                    .astype(int)
+                                    + 1970,
+                                    dtype=np.float32,
+                                )
+                            else:
+                                c_array_pat = np.array(
+                                    self.body.get_var_by_name(name_s)
+                                    .decode(
+                                        self.data_s_splitted[pat][0, index_s].reshape(
+                                            -1, 1
+                                        )
+                                    )
+                                    .flatten(),
+                                    dtype=np.float32,
+                                )
+
+                            if self.non_missing_s_splitted[pat][0][index_s] > 0:
+                                line = ax.plot(
+                                    self.body.get_var_by_name("time [years]").decode(
+                                        self.times_splitted[pat]
+                                    ),
+                                    self.prior_preds_y[pat][:, index_y].detach(),
+                                    c=cmap(norm(c_array_pat)),
+                                )
+                        ax.set(ylim=(0, 1))
+                        ax.set_ylabel("Probability")
+                        ax.set_xlabel("time [years]")
+                        plt.title(name_y)
+                        # Create a ScalarMappable using the colormap and norm
+                        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+                        sm.set_array([])  # Set an empty array
+
+                        # Create a colorbar
+                        cbar = plt.colorbar(
+                            sm,
+                            ax=ax,
+                        )
+                        cbar.ax.set_ylabel(name_s)
         return
