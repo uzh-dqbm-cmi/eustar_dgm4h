@@ -130,8 +130,8 @@ if __name__ == "__main__":
     }
 
     predict = True
-    sample_ = False
-    fixed_variance = True
+    sample_ = True
+    fixed_variance = False
     retrodiction = False
     # to create classifier configs. Specify each classifier name, variables to predict in y, z dimensions to use and architecture of the classifier
     classifier_config = {

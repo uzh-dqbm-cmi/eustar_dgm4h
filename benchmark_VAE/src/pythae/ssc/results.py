@@ -274,12 +274,15 @@ class EvalPatient:
             x_recon_means = torch.mean(tmp, dim=0)
             x_recon_std = torch.std(tmp, dim=0)
             f = plot_x_overlaid(
+                self.body,
                 self.data_x,
                 x_recon[0].reshape(1, len(self.times), self.data_x.shape[1]),
                 torch.sqrt(torch.exp(x_recon_log_var[0])).reshape(
                     1, len(self.times), self.data_x.shape[1]
                 ),
-                self.data_t[:, 0],
+                self.body.get_var_by_name("time [years]")
+                .decode(self.data_t[:, 0].reshape(-1, 1))
+                .flatten(),
                 self.missing_x,
                 num_rec,
                 self.names_x1,
@@ -326,7 +329,9 @@ class EvalPatient:
                     if probs.shape[1] == 1:
                         probs = torch.cat([1 - probs, probs], axis=1)
                     f = plot_categorical_preds(
-                        self.data_t[:, 0],
+                        self.body.get_var_by_name("time [years]")
+                        .decode(self.data_t[:, 0].reshape(-1, 1))
+                        .flatten(),
                         categories,
                         probs.detach().T,
                         ground_truth.flatten(),
@@ -366,6 +371,129 @@ class EvalPatient:
                 )
         return
 
+    def plot_continuous_feature(self, name, figure_path):
+
+        i = self.batch_num
+        figsize = (6, 2)
+
+        f, axs = plt.subplots(
+            self.splits[0] + 1,
+            1,
+            sharex=False,
+            sharey=False,
+            figsize=(1 * figsize[0], (self.splits[0] + 1) * (figsize[1] + 1)),
+        )
+        f.subplots_adjust(hspace=0.5)  # , wspace=0.2)
+        index_name = self.names_x1.index(name)
+        for num_rec in range(self.splits[0] + 1):
+            ax = axs[num_rec]
+            # predicted samples
+            x_recon = torch.stack(
+                [
+                    torch.split(elem.recon_x, self.splits * (self.splits[0] + 1))[
+                        num_rec
+                    ]
+                    for elem in self.samples
+                ]
+            )
+            x_recon_log_var = torch.stack(
+                [
+                    torch.split(
+                        elem.recon_x_log_var, self.splits * (self.splits[0] + 1)
+                    )[num_rec]
+                    for elem in self.samples
+                ]
+            )
+
+            recon_x_means = x_recon[0].reshape(1, len(self.times), self.data_x.shape[1])
+            recon_x_stds = torch.sqrt(torch.exp(x_recon_log_var[0])).reshape(
+                1, len(self.times), self.data_x.shape[1]
+            )
+            time = (
+                self.body.get_var_by_name("time [years]")
+                .decode(self.data_t[:, 0].reshape(-1, 1))
+                .flatten()
+            )
+            recon_x_means = [elem.detach().numpy() for elem in recon_x_means]
+            recon_x_stds = [elem.detach().numpy() for elem in recon_x_stds]
+
+            colors = plt.cm.Blues(np.linspace(0.3, 1, 1))
+
+            ax.plot(
+                time,
+                self.body.get_var_by_name(name)
+                .decode(self.data_x[:, index_name].reshape(-1, 1))
+                .flatten(),
+                ".-",
+                color="C2",
+                label="ground truth",
+            )
+
+            mean_rescaled = (
+                self.body.get_var_by_name(name)
+                .decode(recon_x_means[0][:, index_name].reshape(-1, 1))
+                .flatten()
+            )
+            ax.plot(
+                time,
+                mean_rescaled,
+                ".-",
+                color="black",
+                label="predictions",
+            )
+            stds_rescaled = (
+                self.body.get_var_by_name(name).enc.scale_
+                * recon_x_stds[0][:, index_name]
+            )
+
+            ax.fill_between(
+                time,
+                mean_rescaled - 2 * stds_rescaled,
+                mean_rescaled + 2 * stds_rescaled,
+                alpha=0.5,
+                color=colors[0],
+            )
+
+            non_miss = ~self.missing_x[:, index_name]
+            if self.data_x[non_miss, index_name].shape[0] > 0:
+                ax.plot(
+                    time[non_miss],
+                    self.body.get_var_by_name(name)
+                    .decode(self.data_x[non_miss, index_name].reshape(-1, 1))
+                    .flatten(),
+                    "o",
+                    color="C3",
+                    label="available",
+                )
+
+            ax.set_title(name)
+            if num_rec < len(time):
+                ax.axvline(time[num_rec] - 0.01, ls="--")
+            ax.set_ylim(
+                self.body.get_var_by_name(name).enc.mean_
+                - 2 * self.body.get_var_by_name(name).enc.scale_,
+                self.body.get_var_by_name(name).enc.mean_
+                + 2 * self.body.get_var_by_name(name).enc.scale_,
+            )
+            ax.set_xlabel("time [years]")
+            ax.set_ylabel("Value")
+            ax.legend(loc="upper right")
+            ax.grid(linestyle="--")
+
+            # uncomment to plot mean and var of samples
+            # f = plot_x_overlaid(self.data_x, x_recon_means.reshape(1, len(self.times),self.data_x.shape[1]), x_recon_std.reshape(1, len(self.times), self.data_x.shape[1]),self.data_t[:, 0], self.missing_x, num_rec,  self.names_x1, self.kinds_x1, names_cont)
+            if not os.path.exists(figure_path + "/" + str(i)):
+                os.makedirs(figure_path + "/" + str(i))
+            f.savefig(
+                figure_path
+                + "/"
+                + str(i)
+                + "/"
+                + name.split("/")[0].split("-")[0].split(".")[0]
+            )
+
+        return f
+
     def plot_y(self, figure_path):
         # res_matrix_y, probs_matrix_y, res_list_y = body.decode_preds(samples[0].y_out_rec, splits_y0, names_y0)
         probas_y = [
@@ -388,7 +516,9 @@ class EvalPatient:
                     if probs.shape[1] == 1:
                         probs = torch.cat([1 - probs, probs], axis=1)
                     f = plot_categorical_preds(
-                        self.data_t[:, 0],
+                        self.body.get_var_by_name("time [years]")
+                        .decode(self.data_t[:, 0].reshape(-1, 1))
+                        .flatten(),
                         categories,
                         probs.detach().T,
                         ground_truth.flatten(),
@@ -1204,6 +1334,7 @@ class EvaluationDataset(EvalPatient):
                 plt.title(name_x)
                 ax.set_xlabel("time [years]")
                 ax.set_ylabel("Value")
+                ax.grid(linestyle="--")
 
         # plots for other static
         for i_x, index_x in enumerate(list_x[:-1]):
@@ -1287,6 +1418,8 @@ class EvaluationDataset(EvalPatient):
                         plt.title(name_x)
                         ax.set_xlabel("time [years]")
                         ax.set_ylabel("Value")
+                        ax.grid(linestyle="--")
+
                         # Create a ScalarMappable using the colormap and norm
                         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
                         sm.set_array([])  # Set an empty array
@@ -1358,6 +1491,7 @@ class EvaluationDataset(EvalPatient):
                 ax.set(ylim=(0, 1))
                 ax.set_ylabel("Probability")
                 ax.set_xlabel("time [years]")
+                ax.grid(linestyle="--")
 
                 handles, labels = plt.gca().get_legend_handles_labels()
                 by_label = dict(zip(labels, handles))
@@ -1445,6 +1579,8 @@ class EvaluationDataset(EvalPatient):
                         ax.set(ylim=(0, 1))
                         ax.set_ylabel("Probability")
                         ax.set_xlabel("time [years]")
+                        ax.grid(linestyle="--")
+
                         plt.title(name_y)
                         # Create a ScalarMappable using the colormap and norm
                         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)

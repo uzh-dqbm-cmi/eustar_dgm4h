@@ -186,6 +186,7 @@ def plot_x(
 
 
 def plot_x_overlaid(
+    body,
     data_x,
     recon_x_mean,
     recon_x_std,
@@ -208,7 +209,11 @@ def plot_x_overlaid(
     nP = len(names)
     # create figure with subplots
     f, axs = plt.subplots(
-        nP, 1, sharex=True, sharey=False, figsize=(1 * figsize[0], nP * figsize[1])
+        nP,
+        1,
+        sharex=False,
+        sharey=False,
+        figsize=(1 * figsize[0], nP * (figsize[1] + 4)),
     )
     f.subplots_adjust(hspace=0.2)  # , wspace=0.2)
     colors = plt.cm.Blues(np.linspace(0.3, 1, len(recon_x_means)))
@@ -220,39 +225,74 @@ def plot_x_overlaid(
                 ax = axs[j]
             else:
                 ax = axs
-            ax.plot(time, data_x[:, i], ".-", color="C2", label="data_x")
+            ax.plot(
+                time,
+                body.get_var_by_name(names_x[i])
+                .decode(data_x[:, i].reshape(-1, 1))
+                .flatten(),
+                ".-",
+                color="C2",
+                label="ground truth",
+            )
 
             for index in range(len(recon_x_means)):
+                mean_rescaled = (
+                    body.get_var_by_name(names_x[i])
+                    .decode(recon_x_means[index][:, i].reshape(-1, 1))
+                    .flatten()
+                )
                 ax.plot(
                     time,
-                    recon_x_means[index][:, i],
-                    ".:",
+                    mean_rescaled,
+                    ".-",
                     color="black",
                     label="predictions",
                 )
+                stds_rescaled = (
+                    body.get_var_by_name(names_x[i]).enc.scale_
+                    * recon_x_stds[index][:, i]
+                )
+                #                 ax.fill_between(
+                #                     time,
+                #                     recon_x_means[index][:, i] - 2 * recon_x_stds[index][:, i],
+                #                     recon_x_means[index][:, i] + 2 * recon_x_stds[index][:, i],
+                #                     alpha=0.5,
+                #                     color=colors[index],
+                #                 )
                 ax.fill_between(
                     time,
-                    recon_x_means[index][:, i] - 2 * recon_x_stds[index][:, i],
-                    recon_x_means[index][:, i] + 2 * recon_x_stds[index][:, i],
+                    mean_rescaled - 2 * stds_rescaled,
+                    mean_rescaled + 2 * stds_rescaled,
                     alpha=0.5,
                     color=colors[index],
                 )
 
             non_miss = ~missing_x[:, i]
-            ax.plot(
-                time[non_miss],
-                data_x[non_miss, i],
-                "o",
-                color="C3",
-                label="non-missing_x",
-            )
+            if data_x[non_miss, i].shape[0] > 0:
+                ax.plot(
+                    time[non_miss],
+                    body.get_var_by_name(names_x[i])
+                    .decode(data_x[non_miss, i].reshape(-1, 1))
+                    .flatten(),
+                    "o",
+                    color="C3",
+                    label="available",
+                )
 
             if not names_x is None:
                 ax.set_title(names_x[i])
             if num_rec < len(time):
                 ax.axvline(time[num_rec] - 0.01, ls="--")
-            ax.set_ylim(-3, 3)
+            ax.set_ylim(
+                body.get_var_by_name(names_x[i]).enc.mean_
+                - 2 * body.get_var_by_name(names_x[i]).enc.scale_,
+                body.get_var_by_name(names_x[i]).enc.mean_
+                + 2 * body.get_var_by_name(names_x[i]).enc.scale_,
+            )
+            ax.set_xlabel("time [years]")
+            ax.set_ylabel("Value")
             ax.legend(loc="upper right")
+            ax.grid(linestyle="--")
 
     return f
 
@@ -334,7 +374,7 @@ def plot_categorical_preds(
         data["category"].values[non_miss.bool()],
         "o",
         color="red",
-        label="non missing",
+        label="available",
     )
     # predicted points
     if num_pred > 0:
@@ -363,7 +403,7 @@ def plot_categorical_preds(
     ax.set_ylabel("Category")
     plt.legend(loc="upper right")
     plt.yticks(categories)
-    plt.title(f"{name}: Predicting last {num_pred} data points")
+    plt.title(f"{name}")
 
     # plt.show()
     return fig
@@ -434,3 +474,243 @@ def plot_x_overlaid_sep(
             ax.legend()
 
             index_count += 1
+
+
+def plot_label_counterfacts(eval_p, eval_p_cf):
+    probas_y = [
+        torch.split(elem[1], eval_p.splits * (eval_p.splits[0] + 1))
+        for elem in eval_p.res_list_y
+    ]
+    probas_y_cf = [
+        torch.split(elem[1], eval_p_cf.splits * (eval_p_cf.splits[0] + 1))
+        for elem in eval_p_cf.res_list_y
+    ]
+    time = (
+        eval_p.body.get_var_by_name("time [years]")
+        .decode(eval_p.data_t[:, 0].reshape(-1, 1))
+        .flatten()
+    )
+
+    for var_index, k in enumerate(eval_p.kinds_y0):
+        if k != "continuous":
+            name = eval_p.names_y0[var_index]
+            if name in [
+                "LUNG_ILD_involvement_or",
+                "HEART_involvement_or",
+                "ARTHRITIS_involvement_or",
+            ]:
+                categories = eval_p.body.get_var_by_name(name).enc.categories_[0]
+                ground_truth = eval_p.body.decode(
+                    eval_p.data_y, eval_p.splits_y0, eval_p.names_y0
+                )[1][var_index]
+                non_miss = torch.split(eval_p.non_missing_y, eval_p.splits_y0, dim=1)[
+                    var_index
+                ][:, 0]
+                figsize = (6, 2)
+
+                f, axs = plt.subplots(
+                    eval_p.splits[0] + 1,
+                    1,
+                    sharex=False,
+                    sharey=False,
+                    figsize=(1 * figsize[0], (eval_p.splits[0] + 1) * (figsize[1] + 1)),
+                )
+                f.subplots_adjust(hspace=0.5)  # , wspace=0.2)
+                for num_rec in range(eval_p.splits[0] + 1):
+                    ax = axs[num_rec]
+                    probs = probas_y[var_index][num_rec]
+                    probs_cf = probas_y_cf[var_index][num_rec]
+                    ax.plot(
+                        time,
+                        probs.detach(),
+                        ".-",
+                        color="black",
+                        label="predictions patient ",
+                    )
+                    ax.plot(
+                        time,
+                        probs_cf.detach(),
+                        ".-",
+                        color="blue",
+                        label="predictions counterfactual patient",
+                    )
+                    ax.set(ylim=(0, 1))
+                    # predicted points
+                    num_pred = eval_p.splits[0] - num_rec
+                    if num_pred > 0:
+                        ax.axvline(time[num_rec] - 0.01, ls="--")
+                    ax.legend()
+                    ax.set_title(name)
+                    ax.set_ylabel("Probability")
+                    ax.set_xlabel("time [years]")
+                    ax.grid(linestyle="--")
+                    ax.legend(bbox_to_anchor=(1, 1))
+    return
+
+
+def plot_continuous_counterfacts(eval_p, eval_p_cf, name, figure_path):
+
+    figsize = (6, 2)
+
+    f, axs = plt.subplots(
+        eval_p.splits[0] + 1,
+        1,
+        sharex=False,
+        sharey=False,
+        figsize=(1 * figsize[0], (eval_p.splits[0] + 1) * (figsize[1] + 1)),
+    )
+    f.subplots_adjust(hspace=0.5)  # , wspace=0.2)
+    index_name = eval_p.names_x1.index(name)
+    for num_rec in range(eval_p.splits[0] + 1):
+        ax = axs[num_rec]
+        # predicted samples
+        x_recon = torch.stack(
+            [
+                torch.split(elem.recon_x, eval_p.splits * (eval_p.splits[0] + 1))[
+                    num_rec
+                ]
+                for elem in eval_p.samples
+            ]
+        )
+        x_recon_log_var = torch.stack(
+            [
+                torch.split(
+                    elem.recon_x_log_var, eval_p.splits * (eval_p.splits[0] + 1)
+                )[num_rec]
+                for elem in eval_p.samples
+            ]
+        )
+
+        recon_x_means = x_recon[0].reshape(1, len(eval_p.times), eval_p.data_x.shape[1])
+        recon_x_stds = torch.sqrt(torch.exp(x_recon_log_var[0])).reshape(
+            1, len(eval_p.times), eval_p.data_x.shape[1]
+        )
+        time = (
+            eval_p.body.get_var_by_name("time [years]")
+            .decode(eval_p.data_t[:, 0].reshape(-1, 1))
+            .flatten()
+        )
+        recon_x_means = [elem.detach().numpy() for elem in recon_x_means]
+        recon_x_stds = [elem.detach().numpy() for elem in recon_x_stds]
+
+        # cf quantities
+        x_recon_cf = torch.stack(
+            [
+                torch.split(elem.recon_x, eval_p_cf.splits * (eval_p_cf.splits[0] + 1))[
+                    num_rec
+                ]
+                for elem in eval_p_cf.samples
+            ]
+        )
+        x_recon_log_var_cf = torch.stack(
+            [
+                torch.split(
+                    elem.recon_x_log_var, eval_p_cf.splits * (eval_p_cf.splits[0] + 1)
+                )[num_rec]
+                for elem in eval_p_cf.samples
+            ]
+        )
+
+        recon_x_means_cf = x_recon_cf[0].reshape(
+            1, len(eval_p_cf.times), eval_p_cf.data_x.shape[1]
+        )
+        recon_x_stds_cf = torch.sqrt(torch.exp(x_recon_log_var_cf[0])).reshape(
+            1, len(eval_p_cf.times), eval_p_cf.data_x.shape[1]
+        )
+        # time_cf = eval_p_cf.body.get_var_by_name("time [years]").decode(eval_p_cf.data_t[:, 0].reshape(-1,1)).flatten()
+        recon_x_means_cf = [elem.detach().numpy() for elem in recon_x_means_cf]
+        recon_x_stds_cf = [elem.detach().numpy() for elem in recon_x_stds_cf]
+        colors = plt.cm.Blues(np.linspace(0.3, 1, 1))
+        colors_cf = plt.cm.Greys(np.linspace(0.3, 1, 1))
+        ax.plot(
+            time,
+            eval_p.body.get_var_by_name(name)
+            .decode(eval_p.data_x[:, index_name].reshape(-1, 1))
+            .flatten(),
+            ".-",
+            color="C2",
+            label="ground truth",
+        )
+
+        mean_rescaled = (
+            eval_p.body.get_var_by_name(name)
+            .decode(recon_x_means[0][:, index_name].reshape(-1, 1))
+            .flatten()
+        )
+        ax.plot(
+            time,
+            mean_rescaled,
+            ".-",
+            color="black",
+            label="predictions patient",
+        )
+        stds_rescaled = (
+            eval_p.body.get_var_by_name(name).enc.scale_
+            * recon_x_stds[0][:, index_name]
+        )
+
+        ax.fill_between(
+            time,
+            mean_rescaled - 2 * stds_rescaled,
+            mean_rescaled + 2 * stds_rescaled,
+            alpha=0.5,
+            color=colors[0],
+        )
+        # cf
+        mean_rescaled_cf = (
+            eval_p_cf.body.get_var_by_name(name)
+            .decode(recon_x_means_cf[0][:, index_name].reshape(-1, 1))
+            .flatten()
+        )
+        ax.plot(
+            time,
+            mean_rescaled_cf,
+            ".-",
+            color="blue",
+            label="predictions counterfactual patient",
+        )
+        stds_rescaled_cf = (
+            eval_p_cf.body.get_var_by_name(name).enc.scale_
+            * recon_x_stds_cf[0][:, index_name]
+        )
+
+        ax.fill_between(
+            time,
+            mean_rescaled_cf - 2 * stds_rescaled_cf,
+            mean_rescaled_cf + 2 * stds_rescaled_cf,
+            alpha=0.5,
+            color=colors_cf[0],
+        )
+        non_miss = ~eval_p.missing_x[:, index_name]
+        if eval_p.data_x[non_miss, index_name].shape[0] > 0:
+            ax.plot(
+                time[non_miss],
+                eval_p.body.get_var_by_name(name)
+                .decode(eval_p.data_x[non_miss, index_name].reshape(-1, 1))
+                .flatten(),
+                "o",
+                color="C3",
+                label="available",
+            )
+
+        ax.set_title(name)
+        if num_rec < len(time):
+            ax.axvline(time[num_rec] - 0.01, ls="--")
+        ax.set_ylim(
+            eval_p.body.get_var_by_name(name).enc.mean_
+            - 2 * eval_p.body.get_var_by_name(name).enc.scale_,
+            eval_p.body.get_var_by_name(name).enc.mean_
+            + 2 * eval_p.body.get_var_by_name(name).enc.scale_,
+        )
+        ax.set_xlabel("time [years]")
+        ax.set_ylabel("Value")
+        ax.legend(loc="upper right")
+        ax.grid(linestyle="--")
+        ax.legend(bbox_to_anchor=(1, 1))
+        # uncomment to plot mean and var of samples
+        # f = plot_x_overlaid(self.data_x, x_recon_means.reshape(1, len(self.times),self.data_x.shape[1]), x_recon_std.reshape(1, len(self.times), self.data_x.shape[1]),self.data_t[:, 0], self.missing_x, num_rec,  self.names_x1, self.kinds_x1, names_cont)
+        # if not os.path.exists(figure_path + "/" + str(i)):
+        #     os.makedirs(figure_path + "/" + str(i))
+        # f.savefig(figure_path + "/" + str(i) + "/" + name.split('/')[0].split('-')[0].split('.')[0] + "counterfactuals")
+
+    return
