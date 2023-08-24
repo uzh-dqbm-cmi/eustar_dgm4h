@@ -47,7 +47,7 @@ if __name__ == "__main__":
     random.seed(seed)
     torch.manual_seed(seed)
     np.random.seed(seed)
-    local = True
+    local = False
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if local:
         data_path = "/home/cctrotte/krauthammer/eustar_clean/fake_data/processed/"
@@ -130,44 +130,44 @@ if __name__ == "__main__":
     }
 
     predict = True
-    sample_ = False
+    sample_ = True
     fixed_variance = False
     retrodiction = False
     # to create classifier configs. Specify each classifier name, variables to predict in y, z dimensions to use and architecture of the classifier
     classifier_config = {
         "lung_inv": {
             "y_names": ["LUNG_ILD_involvement_or"],
-            "z_dims": np.arange(0, 7),
+            "z_dims": np.arange(0, 22),
             "layers": params["classif_layers"],
             "type": "static",
         },
         "lung_stage": {
             "y_names": ["LUNG_ILD_stage_or"],
-            "z_dims": np.arange(0, 7),
+            "z_dims": np.arange(0, 22),
             "layers": params["classif_layers"],
             "type": "static",
         },
         "heart_inv": {
             "y_names": ["HEART_involvement_or"],
-            "z_dims": np.arange(7, 15),
+            "z_dims": np.arange(0, 22),
             "layers": params["classif_layers"],
             "type": "static",
         },
         "heart_stage": {
             "y_names": ["HEART_stage_or"],
-            "z_dims": np.arange(7, 15),
+            "z_dims": np.arange(0, 22),
             "layers": params["classif_layers"],
             "type": "static",
         },
         "arthritis_inv": {
             "y_names": ["ARTHRITIS_involvement_or"],
-            "z_dims": np.arange(15, 22),
+            "z_dims": np.arange(0, 22),
             "layers": params["classif_layers"],
             "type": "static",
         },
         "arthritis_stage": {
             "y_names": ["ARTHRITIS_stage_or"],
-            "z_dims": np.arange(15, 22),
+            "z_dims": np.arange(0, 22),
             "layers": params["classif_layers"],
             "type": "static",
         },
@@ -183,6 +183,14 @@ if __name__ == "__main__":
         "arthritis_inv": 0.2,
         "arthritis_stage": 0.2,
     }
+    # w_class = {
+    #     "lung_inv": 0.0,
+    #     "lung_stage": 0.0,
+    #     "heart_inv": 0.0,
+    #     "heart_stage": 0.0,
+    #     "arthritis_inv": 0.0,
+    #     "arthritis_stage": 0.0,
+    # }
     w_recon = 1
 
     # weights for the different losses
@@ -196,6 +204,14 @@ if __name__ == "__main__":
         "arthritis_inv": 0.2,
         "arthritis_stage": 0.2,
     }
+    # w_class_pred = {
+    #     "lung_inv": 0.0,
+    #     "lung_stage": 0.0,
+    #     "heart_inv": 0.0,
+    #     "heart_stage": 0.0,
+    #     "arthritis_inv": 0.0,
+    #     "arthritis_stage": 0.0,
+    # }
     # w_recon = max(0, 1 - beta - sum(w_class.values()))
     w_recon_pred = 1
 
@@ -280,12 +296,12 @@ if __name__ == "__main__":
     k = 0
     print(f"Combination {i} fold {k}")
 
-    output_dir = "my_model/"
+    output_dir = "ml4h_save/joint_z_fold_allz" + str(k) + "/"
     config = BaseTrainerConfig(
         output_dir=output_dir + str(k),
         learning_rate=1e-3,
         batch_size=100,
-        num_epochs=1,
+        num_epochs=80,
         customized=True,  # if we use the cusomized data loader for different sized patients
     )
     if retrodiction:
@@ -317,5 +333,5 @@ if __name__ == "__main__":
     )
 
     pipeline = TrainingPipeline(training_config=config, model=model)
-
+    pipeline(train_data=data_train_folds[k], eval_data=data_valid_folds[k])
     print("End")

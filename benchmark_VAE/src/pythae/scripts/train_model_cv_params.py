@@ -120,12 +120,12 @@ if __name__ == "__main__":
         "samp_false_fixed_var_false": (0.1, 100, 1, [100, 100], [100], [100], [40]),
     }
     params = {
-        "dropout": 0.1,
+        "dropout": 0.05,
         "lstm_hidden_size": 100,
-        "num_lstm_layers": 1,
+        "num_lstm_layers": 3,
         "hidden_dims_enc": [100, 100],
-        "hidden_dims_emb_dec": [100],
-        "hidden_dims_log_var_dec": [100],
+        "hidden_dims_emb_dec": [100, 100],
+        "hidden_dims_log_var_dec": [20],
         "classif_layers": [40],
     }
 

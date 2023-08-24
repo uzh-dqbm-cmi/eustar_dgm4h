@@ -196,6 +196,7 @@ def plot_x_overlaid(
     names_x,
     kinds_x1,
     names,
+    plot_missing=False,
     figsize=(6, 3),
 ):
     recon_x_means = [elem.detach().numpy() for elem in recon_x_mean]
@@ -219,21 +220,34 @@ def plot_x_overlaid(
     colors = plt.cm.Blues(np.linspace(0.3, 1, len(recon_x_means)))
 
     for j, i in enumerate(cont_indices):
+        non_miss = ~missing_x[:, i]
 
         if names_x[i] in names:
             if nP > 1:
                 ax = axs[j]
             else:
                 ax = axs
-            ax.plot(
-                time,
-                body.get_var_by_name(names_x[i])
-                .decode(data_x[:, i].reshape(-1, 1))
-                .flatten(),
-                ".-",
-                color="C2",
-                label="ground truth",
-            )
+            if plot_missing:
+                ax.plot(
+                    time,
+                    body.get_var_by_name(names_x[i])
+                    .decode(data_x[:, i].reshape(-1, 1))
+                    .flatten(),
+                    ".-",
+                    color="C2",
+                    label="ground truth",
+                )
+            else:
+                if data_x[non_miss, i].shape[0] > 0:
+                    ax.plot(
+                        time[non_miss],
+                        body.get_var_by_name(names_x[i])
+                        .decode(data_x[non_miss, i].reshape(-1, 1))
+                        .flatten(),
+                        ".-",
+                        color="C2",
+                        label="ground truth",
+                    )
 
             for index in range(len(recon_x_means)):
                 mean_rescaled = (
@@ -267,7 +281,6 @@ def plot_x_overlaid(
                     color=colors[index],
                 )
 
-            non_miss = ~missing_x[:, i]
             if data_x[non_miss, i].shape[0] > 0:
                 ax.plot(
                     time[non_miss],
@@ -282,16 +295,44 @@ def plot_x_overlaid(
             if not names_x is None:
                 ax.set_title(names_x[i])
             if num_rec < len(time):
-                ax.axvline(time[num_rec] - 0.01, ls="--")
-            ax.set_ylim(
-                body.get_var_by_name(names_x[i]).enc.mean_
-                - 2 * body.get_var_by_name(names_x[i]).enc.scale_,
-                body.get_var_by_name(names_x[i]).enc.mean_
-                + 2 * body.get_var_by_name(names_x[i]).enc.scale_,
-            )
+                ax.axvline(time[num_rec] - 0.05, ls="--")
+
+            if data_x[non_miss, i].shape[0] > 0:
+                y_min = (
+                    min(
+                        body.get_var_by_name(names_x[i]).enc.mean_,
+                        min(
+                            body.get_var_by_name(names_x[i])
+                            .decode(data_x[non_miss, i].reshape(-1, 1))
+                            .flatten()
+                        ),
+                    )
+                    - 2 * body.get_var_by_name(names_x[i]).enc.scale_
+                )
+                y_max = (
+                    max(
+                        body.get_var_by_name(names_x[i]).enc.mean_,
+                        max(
+                            body.get_var_by_name(names_x[i])
+                            .decode(data_x[non_miss, i].reshape(-1, 1))
+                            .flatten()
+                        ),
+                    )
+                    + 2 * body.get_var_by_name(names_x[i]).enc.scale_
+                )
+            else:
+                y_min = (
+                    body.get_var_by_name(names_x[i]).enc.mean_
+                    - 2 * body.get_var_by_name(names_x[i]).enc.scale_
+                )
+                y_max = (
+                    body.get_var_by_name(names_x[i]).enc.mean_
+                    + 2 * body.get_var_by_name(names_x[i]).enc.scale_
+                )
+            ax.set_ylim(y_min, y_max)
             ax.set_xlabel("time [years]")
             ax.set_ylabel("Value")
-            ax.legend(loc="upper right")
+            ax.legend(loc="lower left", fontsize="x-small")
             ax.grid(linestyle="--")
 
     return f
@@ -348,7 +389,14 @@ def plot_all_categorical_preds(
 
 
 def plot_categorical_preds(
-    times, categories, predicted_probas, ground_truth, non_miss, num_pred, name
+    times,
+    categories,
+    predicted_probas,
+    ground_truth,
+    non_miss,
+    num_pred,
+    name,
+    plot_missing=False,
 ):
     # Generate example data
     time_points = [i.item() for i in times.flatten()]
@@ -367,7 +415,18 @@ def plot_categorical_preds(
 
     # Create line plot of ground truth category
     fig, ax = plt.subplots()
-    ax.plot(data["time"], data["category"], "-o", color="black", label="ground truth")
+    if plot_missing:
+        ax.plot(
+            data["time"], data["category"], "-o", color="black", label="ground truth"
+        )
+    else:
+        ax.plot(
+            data["time"].values[non_miss.bool()],
+            data["category"].values[non_miss.bool()],
+            "-o",
+            color="black",
+            label="ground truth",
+        )
     # non missing
     ax.plot(
         data["time"].values[non_miss.bool()],
@@ -622,15 +681,15 @@ def plot_continuous_counterfacts(eval_p, eval_p_cf, name, figure_path):
         recon_x_stds_cf = [elem.detach().numpy() for elem in recon_x_stds_cf]
         colors = plt.cm.Blues(np.linspace(0.3, 1, 1))
         colors_cf = plt.cm.Greys(np.linspace(0.3, 1, 1))
-        ax.plot(
-            time,
-            eval_p.body.get_var_by_name(name)
-            .decode(eval_p.data_x[:, index_name].reshape(-1, 1))
-            .flatten(),
-            ".-",
-            color="C2",
-            label="ground truth",
-        )
+        #         ax.plot(
+        #             time,
+        #             eval_p.body.get_var_by_name(name)
+        #             .decode(eval_p.data_x[:, index_name].reshape(-1, 1))
+        #             .flatten(),
+        #             ".-",
+        #             color="C2",
+        #             label="ground truth",
+        #         )
 
         mean_rescaled = (
             eval_p.body.get_var_by_name(name)
@@ -681,17 +740,17 @@ def plot_continuous_counterfacts(eval_p, eval_p_cf, name, figure_path):
             alpha=0.5,
             color=colors_cf[0],
         )
-        non_miss = ~eval_p.missing_x[:, index_name]
-        if eval_p.data_x[non_miss, index_name].shape[0] > 0:
-            ax.plot(
-                time[non_miss],
-                eval_p.body.get_var_by_name(name)
-                .decode(eval_p.data_x[non_miss, index_name].reshape(-1, 1))
-                .flatten(),
-                "o",
-                color="C3",
-                label="available",
-            )
+        #         non_miss = ~eval_p.missing_x[:, index_name]
+        #         if eval_p.data_x[non_miss, index_name].shape[0] > 0:
+        #             ax.plot(
+        #                 time[non_miss],
+        #                 eval_p.body.get_var_by_name(name)
+        #                 .decode(eval_p.data_x[non_miss, index_name].reshape(-1, 1))
+        #                 .flatten(),
+        #                 "o",
+        #                 color="C3",
+        #                 label="available",
+        #             )
 
         ax.set_title(name)
         if num_rec < len(time):

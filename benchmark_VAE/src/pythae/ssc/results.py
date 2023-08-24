@@ -245,7 +245,7 @@ class EvalPatient:
                     var
                 ).get_categories(self.res_matrix_y[:, index])
 
-    def plot_continuous_x(self, figure_path):
+    def plot_continuous_x(self, figure_path, plot_missing=False):
         names_cont = [
             elem
             for index, elem in enumerate(self.names_x1)
@@ -288,6 +288,7 @@ class EvalPatient:
                 self.names_x1,
                 self.kinds_x1,
                 names_cont,
+                plot_missing,
             )
             # uncomment to plot mean and var of samples
             # f = plot_x_overlaid(self.data_x, x_recon_means.reshape(1, len(self.times),self.data_x.shape[1]), x_recon_std.reshape(1, len(self.times), self.data_x.shape[1]),self.data_t[:, 0], self.missing_x, num_rec,  self.names_x1, self.kinds_x1, names_cont)
@@ -371,7 +372,7 @@ class EvalPatient:
                 )
         return
 
-    def plot_continuous_feature(self, name, figure_path):
+    def plot_continuous_feature(self, name, figure_path, plot_missing=False):
 
         i = self.batch_num
         figsize = (6, 2)
@@ -385,6 +386,8 @@ class EvalPatient:
         )
         f.subplots_adjust(hspace=0.5)  # , wspace=0.2)
         index_name = self.names_x1.index(name)
+        non_miss = ~self.missing_x[:, index_name]
+
         for num_rec in range(self.splits[0] + 1):
             ax = axs[num_rec]
             # predicted samples
@@ -419,15 +422,27 @@ class EvalPatient:
 
             colors = plt.cm.Blues(np.linspace(0.3, 1, 1))
 
-            ax.plot(
-                time,
-                self.body.get_var_by_name(name)
-                .decode(self.data_x[:, index_name].reshape(-1, 1))
-                .flatten(),
-                ".-",
-                color="C2",
-                label="ground truth",
-            )
+            if plot_missing:
+                ax.plot(
+                    time,
+                    self.body.get_var_by_name(name)
+                    .decode(self.data_x[:, index_name].reshape(-1, 1))
+                    .flatten(),
+                    ".-",
+                    color="C2",
+                    label="ground truth",
+                )
+            else:
+                if self.data_x[non_miss, index_name].shape[0] > 0:
+                    ax.plot(
+                        time[non_miss],
+                        self.body.get_var_by_name(name)
+                        .decode(self.data_x[non_miss, index_name].reshape(-1, 1))
+                        .flatten(),
+                        ".-",
+                        color="C2",
+                        label="ground truth",
+                    )
 
             mean_rescaled = (
                 self.body.get_var_by_name(name)
@@ -454,7 +469,6 @@ class EvalPatient:
                 color=colors[0],
             )
 
-            non_miss = ~self.missing_x[:, index_name]
             if self.data_x[non_miss, index_name].shape[0] > 0:
                 ax.plot(
                     time[non_miss],
@@ -468,16 +482,47 @@ class EvalPatient:
 
             ax.set_title(name)
             if num_rec < len(time):
-                ax.axvline(time[num_rec] - 0.01, ls="--")
+                ax.axvline(time[num_rec] - 0.05, ls="--")
+
+            if self.data_x[non_miss, index_name].shape[0] > 0:
+                y_min = (
+                    min(
+                        self.body.get_var_by_name(name).enc.mean_,
+                        min(
+                            self.body.get_var_by_name(name)
+                            .decode(self.data_x[non_miss, index_name].reshape(-1, 1))
+                            .flatten()
+                        ),
+                    )
+                    - 2 * self.body.get_var_by_name(name).enc.scale_
+                )
+                y_max = (
+                    max(
+                        self.body.get_var_by_name(name).enc.mean_,
+                        max(
+                            self.body.get_var_by_name(name)
+                            .decode(self.data_x[non_miss, index_name].reshape(-1, 1))
+                            .flatten()
+                        ),
+                    )
+                    + 2 * self.body.get_var_by_name(name).enc.scale_
+                )
+            else:
+                y_min = (
+                    self.body.get_var_by_name(name).enc.mean_
+                    - 2 * self.body.get_var_by_name(name).enc.scale_
+                )
+                y_max = (
+                    self.body.get_var_by_name(name).enc.mean_
+                    + 2 * self.body.get_var_by_name(name).enc.scale_
+                )
             ax.set_ylim(
-                self.body.get_var_by_name(name).enc.mean_
-                - 2 * self.body.get_var_by_name(name).enc.scale_,
-                self.body.get_var_by_name(name).enc.mean_
-                + 2 * self.body.get_var_by_name(name).enc.scale_,
+                y_min,
+                y_max,
             )
             ax.set_xlabel("time [years]")
             ax.set_ylabel("Value")
-            ax.legend(loc="upper right")
+            ax.legend(loc="lower left", fontsize="x-small")
             ax.grid(linestyle="--")
 
             # uncomment to plot mean and var of samples

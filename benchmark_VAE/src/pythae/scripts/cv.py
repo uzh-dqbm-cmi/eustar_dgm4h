@@ -138,8 +138,8 @@ if __name__ == "__main__":
         classif_layers,
     ) in enumerate(combinations):
         predict = True
-        sample_ = True
-        fixed_variance = False
+        sample_ = False
+        fixed_variance = True
         retrodiction = False
         # to create classifier configs. Specify each classifier name, variables to predict in y, z dimensions to use and architecture of the classifier
         classifier_config = {
@@ -288,7 +288,7 @@ if __name__ == "__main__":
         )
 
         for k in range(len(data_train_folds)):
-            print(f"Combination {i} fold {k}")
+            print(f"Combination {i} fold {k} t")
 
             output_dir = (
                 "samp_"
