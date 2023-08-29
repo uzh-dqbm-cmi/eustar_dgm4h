@@ -114,23 +114,23 @@ if __name__ == "__main__":
     latent_dim = 22
     model_name = "VAE"
     best_params = best = {
-        "samp_true_fixed_var_true": (0.05, 100, 3, [100, 100], [100, 100], [20], [40]),
-        "samp_true_fixed_var_false": (0.05, 100, 3, [100, 100], [100, 100], [20], [40]),
-        "samp_false_fixed_var_true": (0.05, 100, 1, [100, 100], [100], [100], [40]),
-        "samp_false_fixed_var_false": (0.1, 100, 1, [100, 100], [100], [100], [40]),
+        "samp_true_fixed_var_true": (0.05, 100, 1, [100, 100], [100, 100], [100], [40]),
+        "samp_true_fixed_var_false": (0.1, 100, 1, [100, 100], [100], [100], [40]),
+        "samp_false_fixed_var_true": (0.1, 100, 1, [100, 100], [100], [100], [40]),
+        "samp_false_fixed_var_false": (0.05, 100, 1, [100, 100], [20], [100,100], [40]),
     }
     params = {
         "dropout": 0.05,
         "lstm_hidden_size": 100,
-        "num_lstm_layers": 3,
+        "num_lstm_layers": 1,
         "hidden_dims_enc": [100, 100],
-        "hidden_dims_emb_dec": [100, 100],
-        "hidden_dims_log_var_dec": [20],
+        "hidden_dims_emb_dec": [20],
+        "hidden_dims_log_var_dec": [100, 100],
         "classif_layers": [40],
     }
 
     predict = True
-    sample_ = True
+    sample_ = False
     fixed_variance = False
     retrodiction = False
     # to create classifier configs. Specify each classifier name, variables to predict in y, z dimensions to use and architecture of the classifier

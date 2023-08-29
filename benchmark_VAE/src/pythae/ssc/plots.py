@@ -398,7 +398,6 @@ def plot_categorical_preds(
     name,
     plot_missing=False,
 ):
-    # Generate example data
     time_points = [i.item() for i in times.flatten()]
     categories = list(categories)
     ground_truth = ground_truth.flatten()

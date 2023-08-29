@@ -421,6 +421,25 @@ class EvalPatient:
             recon_x_stds = [elem.detach().numpy() for elem in recon_x_stds]
 
             colors = plt.cm.Blues(np.linspace(0.3, 1, 1))
+            
+            mean_rescaled = (
+                self.body.get_var_by_name(name)
+                .decode(recon_x_means[0][:, index_name].reshape(-1, 1))
+                .flatten()
+            )
+            stds_rescaled = (
+                    self.body.get_var_by_name(name).enc.scale_
+                    * recon_x_stds[0][:, index_name]
+                )
+
+            ax.fill_between(
+                time,
+                mean_rescaled - 2 * stds_rescaled,
+                mean_rescaled + 2 * stds_rescaled,
+                alpha=0.5,
+                color=colors[0],
+            )
+
 
             if plot_missing:
                 ax.plot(
@@ -432,6 +451,14 @@ class EvalPatient:
                     color="C2",
                     label="ground truth",
                 )
+                ax.plot(
+                time,
+                mean_rescaled,
+                ".-",
+                color="black",
+                label="predictions",
+                )
+
             else:
                 if self.data_x[non_miss, index_name].shape[0] > 0:
                     ax.plot(
@@ -443,31 +470,15 @@ class EvalPatient:
                         color="C2",
                         label="ground truth",
                     )
-
-            mean_rescaled = (
-                self.body.get_var_by_name(name)
-                .decode(recon_x_means[0][:, index_name].reshape(-1, 1))
-                .flatten()
-            )
-            ax.plot(
-                time,
-                mean_rescaled,
+                ax.plot(
+                time[non_miss],
+                mean_rescaled[non_miss],
                 ".-",
                 color="black",
                 label="predictions",
-            )
-            stds_rescaled = (
-                self.body.get_var_by_name(name).enc.scale_
-                * recon_x_stds[0][:, index_name]
-            )
+                )
 
-            ax.fill_between(
-                time,
-                mean_rescaled - 2 * stds_rescaled,
-                mean_rescaled + 2 * stds_rescaled,
-                alpha=0.5,
-                color=colors[0],
-            )
+
 
             if self.data_x[non_miss, index_name].shape[0] > 0:
                 ax.plot(
