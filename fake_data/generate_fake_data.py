@@ -17,9 +17,9 @@ sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ml4h_ct/benchmark_VAE/src/"
 
 params = {
     "patients": {
-        "n_patients": 200,
+        "n_patients": 2000,
         "min_num_visits": 5,
-        "max_num_visits": 30,
+        "max_num_visits": 16,
         "features": {"Sex": {"values": ["female", "male"], "kind": "categorical", "nan_prop": 0.0}, "Height": {"values": [60, 220], "kind": "continuous", "nan_prop": 0.2},
                      "Race white": {"values": ["White"], "kind": "categorical", "nan_prop": 0.2}, "Hispanic": {"values": ["Hispanic"], "kind": "categorical", "nan_prop": 0.7},
                      "Any other white": {"values": ["Any other White"], "kind": "categorical", "nan_prop": 0.7}, 

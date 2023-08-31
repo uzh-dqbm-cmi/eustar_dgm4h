@@ -43,7 +43,7 @@ class CV:
 
 
 if __name__ == "__main__":
-    local = False
+    local = True
     name = "_ml4h"
     n_folds = 5
     if local:

@@ -138,8 +138,8 @@ if __name__ == "__main__":
         classif_layers,
     ) in enumerate(combinations):
         predict = True
-        sample_ = False
-        fixed_variance = True
+        sample_ = True
+        fixed_variance = False
         retrodiction = False
         # to create classifier configs. Specify each classifier name, variables to predict in y, z dimensions to use and architecture of the classifier
         classifier_config = {
@@ -183,26 +183,42 @@ if __name__ == "__main__":
         # weights for the different losses
         beta = 0.01
         # overall weight factor for the classifiers
+        # w_class = {
+        #     "lung_inv": 0.2,
+        #     "lung_stage": 0.2,
+        #     "heart_inv": 0.2,
+        #     "heart_stage": 0.2,
+        #     "arthritis_inv": 0.2,
+        #     "arthritis_stage": 0.2,
+        # }
         w_class = {
-            "lung_inv": 0.2,
-            "lung_stage": 0.2,
-            "heart_inv": 0.2,
-            "heart_stage": 0.2,
-            "arthritis_inv": 0.2,
-            "arthritis_stage": 0.2,
+            "lung_inv": 0.0,
+            "lung_stage": 0.0,
+            "heart_inv": 0.0,
+            "heart_stage": 0.0,
+            "arthritis_inv": 0.0,
+            "arthritis_stage": 0.0,
         }
         w_recon = 1
 
         # weights for the different losses
 
         # overall weight factor for the classifiers
+        # w_class_pred = {
+        #     "lung_inv": 0.2,
+        #     "lung_stage": 0.2,
+        #     "heart_inv": 0.2,
+        #     "heart_stage": 0.2,
+        #     "arthritis_inv": 0.2,
+        #     "arthritis_stage": 0.2,
+        # }
         w_class_pred = {
-            "lung_inv": 0.2,
-            "lung_stage": 0.2,
-            "heart_inv": 0.2,
-            "heart_stage": 0.2,
-            "arthritis_inv": 0.2,
-            "arthritis_stage": 0.2,
+            "lung_inv": 0.0,
+            "lung_stage": 0.0,
+            "heart_inv": 0.0,
+            "heart_stage": 0.0,
+            "arthritis_inv": 0.0,
+            "arthritis_stage": 0.0,
         }
         # w_recon = max(0, 1 - beta - sum(w_class.values()))
         w_recon_pred = 1
@@ -297,7 +313,7 @@ if __name__ == "__main__":
                 + str(predict)
                 + "var_fixed"
                 + str(fixed_variance)
-                + "_cv/"
+                + "_cv_no_g/"
             )
             config = BaseTrainerConfig(
                 output_dir=output_dir + str(k),

@@ -178,8 +178,8 @@ if __name__ == "__main__":
     cv = True
     # name = "_allcont"
     if local:
-        data_path = "/home/cctrotte/krauthammer/eustar/fake_data/raw/"
-        save_path = "/home/cctrotte/krauthammer/eustar/fake_data/processed/"
+        data_path = "/home/cctrotte/krauthammer/eustar_clean/fake_data/raw/"
+        save_path = "/home/cctrotte/krauthammer/eustar_clean/fake_data/processed/"
     else:
         data_path = "/cluster/work/medinfmk/EUSTAR2/data/raw/"
         save_path = "/cluster/work/medinfmk/EUSTAR2/data/processed/ct/"

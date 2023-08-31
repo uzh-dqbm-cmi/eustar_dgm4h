@@ -47,4 +47,5 @@ my_model/
 *.pt
 *.json
 *.csv
-
+*.png
+*.gif
