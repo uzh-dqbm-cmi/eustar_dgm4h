@@ -1,1 +1,0 @@
-{"name": "BaseTrainerConfig", "output_dir": "samp_Truepred_Truevar_fixedTrue_cv/0", "batch_size": 100, "num_epochs": 1, "learning_rate": 0.001, "steps_saving": null, "steps_predict": null, "keep_best_on_train": false, "seed": 8, "no_cuda": false, "customized": true, "rnn": false}
