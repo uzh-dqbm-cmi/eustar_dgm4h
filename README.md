@@ -23,13 +23,14 @@ After succesful completion of these three steps, you can run the notebooks in **
 
 ### Notebooks description
 
-* **demo_notebooks/a_train_model.ipynb** : train and save a model. This notebook has to be executed first, as the other notbooks will reload the pretrained model.
+* **demo_notebooks/a_train_model.ipynb** : train and save a model. This notebook has to be executed first, as the other notebooks will reload the saved trained model.
 
-* **demo_notebooks/model_evaluation.ipynb** : online monitoring and performance evaluation
+* **demo_notebooks/clustering.ipynb** : latent space clustering and trajectory similarity
 
 * **demo_notebooks/latent_space.ipynb** : latent space visualizations 
 
-* **demo_notebooks/clustering.ipynb** : latent space clustering and trajectory similarity
+* **demo_notebooks/model_evaluation.ipynb** : online monitoring and performance evaluation
+
 
 [1]: https://ml4health.github.io/2023/
 [2]: https://pypi.org/project/pythae/
