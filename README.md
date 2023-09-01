@@ -1,13 +1,34 @@
-# code
- code for the paper .... ML4H
+# Modeling Complex Disease Trajectories using Deep Generative Models with Semi-Supervised Latent Processes
 
- ## scripts
+This repository contains the code for the paper "Modeling Complex Disease Trajectories using Deep Generative
+Models with Semi-Supervised Latent Processes" submitted at ML4H 2023. 
+
+## Data
+
+The EUSTAR data used to produce the results in the paper is confidential and cannot be shared. However, to facilitate reproducibility, we implemented a framework that allows the user to generate artificial data with the same structure as EUSTAR. The artificial data is randomly generated, and thus the evaluation results on this artificial data does not reflect the evaluation results presented in the paper.
+
+## Code 
+The model implementation builds upon the 
+<cite>[pythae][1]</cite> library developed by Chadebec & al. The **benchmark_VAE/src/pythae/** folder contains the model implementation and the framework specific to systemic sclerosis modeling in the **benchmark_VAE/src/pythae/ssc/** folder. The **fake_data/** folder contains the framework to generate the artificial data. The **demo_notebooks/** folder contains notebooks to experiment with the model on some artificial data.
+
+ ## Running experiments on artificial data
  
- run fake_data/generate_fake_data.py to generate fake data (then stored in fake_data/raw)
+ Please be mindful to adapt the paths to save, load data, models, figures etc. to match your environment.
+1.  `pip install -r requirements.txt`
+2.  `python3 fake_data/generate_fake_data.py` to generate fake data (then stored in fake_data/raw)
+3. `python3 benchmarkVAE/src/pythae/ssc/create_cv.py` to create the cohorts and objects (takes some time depending on the size of the data)
 
- run benchmark_VAE/src/pythae/ssc/create_cv.py to create and save the cohorts and bodies objects for the CV (takes some time, depending on the size of the dataset)
+After succesful completion of these three steps, you can run the notebooks in **demo_notebooks/**.
 
-## notebooks
 
-demo_notebooks/train_model.ipynb : train and save a model
-demo_notebooks/plots.ipynb : load a trained model and analyze the results
+### Notebooks description
+
+* **demo_notebooks/a_train_model.ipynb** : train and save a model. This notebook has to be executed first, as the other notbooks will reload the pretrained model.
+
+* **demo_notebooks/model_evaluation.ipynb** : online monitoring and performance evaluation
+
+* **demo_notebooks/latent_space.ipynb** : latent space visualizations 
+
+* **demo_notebooks/clustering.ipynb** : latent space clustering and trajectory similarity
+
+[1]: https://pypi.org/project/pythae/
