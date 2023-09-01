@@ -117,7 +117,15 @@ if __name__ == "__main__":
         "samp_true_fixed_var_true": (0.05, 100, 1, [100, 100], [100, 100], [100], [40]),
         "samp_true_fixed_var_false": (0.1, 100, 1, [100, 100], [100], [100], [40]),
         "samp_false_fixed_var_true": (0.1, 100, 1, [100, 100], [100], [100], [40]),
-        "samp_false_fixed_var_false": (0.05, 100, 1, [100, 100], [20], [100,100], [40]),
+        "samp_false_fixed_var_false": (
+            0.05,
+            100,
+            1,
+            [100, 100],
+            [20],
+            [100, 100],
+            [40],
+        ),
     }
     params = {
         "dropout": 0.05,

@@ -1,10 +1,13 @@
 # code
- code for eustar2 about organ involvement
+ code for the paper .... ML4H
 
  ## scripts
  
  run fake_data/generate_fake_data.py to generate fake data (then stored in fake_data/raw)
 
- run body.py to create the body object from real or fake data (saves cohort and body)
+ run benchmark_VAE/src/pythae/ssc/create_cv.py to create and save the cohorts and bodies objects for the CV (takes some time, depending on the size of the dataset)
 
- run test_scripts/train.py to train a VAE on the body
+## notebooks
+
+demo_notebooks/train_model.ipynb : train and save a model
+demo_notebooks/plots.ipynb : load a trained model and analyze the results

@@ -421,16 +421,16 @@ class EvalPatient:
             recon_x_stds = [elem.detach().numpy() for elem in recon_x_stds]
 
             colors = plt.cm.Blues(np.linspace(0.3, 1, 1))
-            
+
             mean_rescaled = (
                 self.body.get_var_by_name(name)
                 .decode(recon_x_means[0][:, index_name].reshape(-1, 1))
                 .flatten()
             )
             stds_rescaled = (
-                    self.body.get_var_by_name(name).enc.scale_
-                    * recon_x_stds[0][:, index_name]
-                )
+                self.body.get_var_by_name(name).enc.scale_
+                * recon_x_stds[0][:, index_name]
+            )
 
             ax.fill_between(
                 time,
@@ -439,7 +439,6 @@ class EvalPatient:
                 alpha=0.5,
                 color=colors[0],
             )
-
 
             if plot_missing:
                 ax.plot(
@@ -452,11 +451,11 @@ class EvalPatient:
                     label="ground truth",
                 )
                 ax.plot(
-                time,
-                mean_rescaled,
-                ".-",
-                color="black",
-                label="predictions",
+                    time,
+                    mean_rescaled,
+                    ".-",
+                    color="black",
+                    label="predictions",
                 )
 
             else:
@@ -471,14 +470,12 @@ class EvalPatient:
                         label="ground truth",
                     )
                 ax.plot(
-                time[non_miss],
-                mean_rescaled[non_miss],
-                ".-",
-                color="black",
-                label="predictions",
+                    time[non_miss],
+                    mean_rescaled[non_miss],
+                    ".-",
+                    color="black",
+                    label="predictions",
                 )
-
-
 
             if self.data_x[non_miss, index_name].shape[0] > 0:
                 ax.plot(
@@ -862,6 +859,7 @@ class EvaluationDataset(EvalPatient):
             (10, 11),
             (11, 12),
         ],
+        verbose=True,
     ):
         dfs_cont = {
             name: pd.DataFrame(
@@ -902,11 +900,11 @@ class EvaluationDataset(EvalPatient):
                     & (self.delta_t_resc <= interv[1])
                     & (self.num_rec_for_pred > 0)
                 ).flatten()
-            print(to_keep.count_nonzero().item())
             list_ = np.concatenate(([0], np.cumsum(self.splits_x0)))
             for index, elem in enumerate(list_[:-1]):
                 name = self.names_x0[index]
-                print(name)
+                if verbose:
+                    print(name)
                 if self.kinds_x0[index] == "continuous":
                     data_sc = self.data_x_recon[
                         (
@@ -1033,9 +1031,9 @@ class EvaluationDataset(EvalPatient):
                         pat_spec_f1_ff = f1_score(
                             pat_spec_ff, true.flatten().astype(float), average="macro"
                         )
-
-                        print(f"acc {acc}")
-                        print(f"acc naive {naive_acc}")
+                        if verbose:
+                            print(f"acc {acc}")
+                            print(f"acc naive {naive_acc}")
                         # print(f'{classification_report(true.flatten().astype(float), recon)}')
                         dfs_cat[self.names_x0[index]].iloc[j]["acc"] = acc
                         dfs_cat[self.names_x0[index]].iloc[j]["naive acc"] = naive_acc
@@ -1148,6 +1146,7 @@ class EvaluationDataset(EvalPatient):
             (10, 11),
             (11, 12),
         ],
+        verbose=True,
     ):
         list_ = np.cumsum([0] + self.splits_y0)
         df = {
@@ -1178,7 +1177,6 @@ class EvaluationDataset(EvalPatient):
                     & (self.delta_t_resc <= interv[1])
                     & (self.num_rec_for_pred >= 0)
                 ).flatten()
-            print(interv)
             for i, elem in enumerate(list_[:-1]):
                 mask_ = (
                     self.non_missing_y_recon[to_keep, list_[i] : list_[i + 1]] > 0
@@ -1191,10 +1189,11 @@ class EvaluationDataset(EvalPatient):
                     value, size=len(true_recon.flatten()), p=counts / sum(counts)
                 )
                 name = self.names_y0[i]
-                print(name)
-                print(classification_report(true_recon, model_recon))
-                print(classification_report(true_recon, baseline_))
-                print(confusion_matrix(true_recon, model_recon))
+                if verbose:
+                    print(name)
+                    print(classification_report(true_recon, model_recon))
+                    print(classification_report(true_recon, baseline_))
+                    print(confusion_matrix(true_recon, model_recon))
                 df[name].iloc[j]["acc"] = accuracy_score(true_recon, model_recon)
                 df[name].iloc[j]["f1 macro"] = f1_score(
                     true_recon, model_recon, average="macro"
