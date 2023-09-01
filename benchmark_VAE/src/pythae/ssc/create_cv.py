@@ -45,7 +45,9 @@ class CV:
 if __name__ == "__main__":
     local = True
     name = "_ml4h"
-    n_folds = 5
+    # change for 5 fold cv
+    n_folds = 2 if local else 5
+    
     if local:
         data_path = "/home/cctrotte/krauthammer/eustar_clean/fake_data/raw/"
         save_path = "/home/cctrotte/krauthammer/eustar_clean/fake_data/processed/"
