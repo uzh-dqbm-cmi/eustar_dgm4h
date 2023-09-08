@@ -1,8 +1,9 @@
 import sys
 import pickle
 
-sys.path.append("/home/cctrotte/krauthammer/eustar_clean/benchmark_VAE/src/")
-sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ml4h_ct/benchmark_VAE/src/")
+path_to_project = ""
+
+sys.path.append(path_to_project + "benchmark_VAE/src/")
 import warnings
 import copy
 from pythae.ssc.body import Body
@@ -43,17 +44,14 @@ class CV:
 
 
 if __name__ == "__main__":
-    local = True
     name = "_ml4h"
     # change for 5 fold cv
+    local = True
     n_folds = 2 if local else 5
 
-    if local:
-        data_path = "/home/cctrotte/krauthammer/eustar_clean/fake_data/raw/"
-        save_path = "/home/cctrotte/krauthammer/eustar_clean/fake_data/processed/"
-    else:
-        data_path = "/cluster/work/medinfmk/EUSTAR2/data/raw/"
-        save_path = "/cluster/work/medinfmk/EUSTAR2/data/processed/ct/"
+    data_path = path_to_project + "fake_data/raw/"
+    save_path = path_to_project + "fake_data/processed/"
+
     # medium dataset
     organs = [
         LUNG_ILD(),

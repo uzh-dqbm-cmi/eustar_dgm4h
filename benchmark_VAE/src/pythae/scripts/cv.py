@@ -2,11 +2,11 @@ import pickle
 import sys
 import itertools
 
-sys.path.append("/home/cctrotte/krauthammer/eustar_clean/benchmark_VAE/")
-sys.path.append("/home/cctrotte/krauthammer/eustar_clean/benchmark_VAE/src/")
+path_to_project = ""
 
-sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ml4h_ct/benchmark_VAE/")
-sys.path.append("/cluster/work/medinfmk/EUSTAR2/code_ml4h_ct/benchmark_VAE/src/")
+sys.path.append(path_to_project + "benchmark_VAE/")
+sys.path.append(path_to_project + "benchmark_VAE/src/")
+
 
 from pythae.trainers import BaseTrainerConfig
 from pythae.pipelines.training import TrainingPipeline
@@ -47,12 +47,10 @@ if __name__ == "__main__":
     random.seed(seed)
     torch.manual_seed(seed)
     np.random.seed(seed)
-    local = False
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    if local:
-        data_path = "/home/cctrotte/krauthammer/eustar_clean/fake_data/processed/"
-    else:
-        data_path = "/cluster/work/medinfmk/EUSTAR2/data/processed/ct/"
+
+    data_path = path_to_project + "fake_data/processed/"
+
 
     # name = "_reduced"
     name = "_ml4h"

@@ -27,7 +27,7 @@ class Cohort:
 
     def load_data(self, path):
         """
-        note that the original data was slightly preprocessed by Cecile as shwown in notebooks_ct/ct_meeting_07_11_22.ipynb
+        note that the original data was slightly preprocessed 
         """
 
         self.pats = pd.read_pickle(path + "pats")
