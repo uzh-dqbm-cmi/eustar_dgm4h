@@ -49,3 +49,5 @@ my_model/
 *.csv
 *.png
 *.gif
+raw/
+processed/
