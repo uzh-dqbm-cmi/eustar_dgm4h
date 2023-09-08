@@ -5,7 +5,7 @@ Models with Semi-Supervised Latent Processes* under review for <cite>[ML4H 2023]
 
 ## Data
 
-The EUSTAR data used to produce the results in the paper is confidential and cannot be shared. However, to facilitate reproducibility, we implemented a framework that allows the user to generate artificial data with the same structure as EUSTAR. The artificial data is randomly generated, and thus the evaluation results on this artificial data does not reflect the evaluation results presented in the paper.
+The EUSTAR data used to produce the results in the paper is confidential and cannot be shared. However, to facilitate reproducibility, we implemented a framework that allows the user to generate artificial data with the same structure as EUSTAR. The artificial data is randomly generated, and thus the evaluation results on this artificial data do not reflect the evaluation results presented in the paper.
 
 ## Code 
 The model implementation builds upon the 

@@ -111,7 +111,7 @@ if __name__ == "__main__":
     input_size = sum(splits_x0)
 
     static_size = sum(splits_s0)
-    latent_dim = 22
+    latent_dim = 21
     model_name = "VAE"
     best_params = best = {
         "samp_true_fixed_var_true": (0.05, 100, 1, [100, 100], [100, 100], [100], [40]),
@@ -157,25 +157,25 @@ if __name__ == "__main__":
         },
         "heart_inv": {
             "y_names": ["HEART_involvement_or"],
-            "z_dims": np.arange(7, 15),
+            "z_dims": np.arange(7, 14),
             "layers": params["classif_layers"],
             "type": "static",
         },
         "heart_stage": {
             "y_names": ["HEART_stage_or"],
-            "z_dims": np.arange(7, 15),
+            "z_dims": np.arange(7, 14),
             "layers": params["classif_layers"],
             "type": "static",
         },
         "arthritis_inv": {
             "y_names": ["ARTHRITIS_involvement_or"],
-            "z_dims": np.arange(15, 22),
+            "z_dims": np.arange(14, 21),
             "layers": params["classif_layers"],
             "type": "static",
         },
         "arthritis_stage": {
             "y_names": ["ARTHRITIS_stage_or"],
-            "z_dims": np.arange(15, 22),
+            "z_dims": np.arange(14, 21),
             "layers": params["classif_layers"],
             "type": "static",
         },

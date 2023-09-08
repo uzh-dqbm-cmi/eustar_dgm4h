@@ -111,7 +111,7 @@ if __name__ == "__main__":
     input_size = sum(splits_x0)
 
     static_size = sum(splits_s0)
-    latent_dim = 22
+    latent_dim = 21
     model_name = "VAE"
     param_grid = {
         "dropout": [0.05, 0.1, 0.2, 0.4],
@@ -157,25 +157,25 @@ if __name__ == "__main__":
             },
             "heart_inv": {
                 "y_names": ["HEART_involvement_or"],
-                "z_dims": np.arange(7, 15),
+                "z_dims": np.arange(7, 14),
                 "layers": classif_layers,
                 "type": "static",
             },
             "heart_stage": {
                 "y_names": ["HEART_stage_or"],
-                "z_dims": np.arange(7, 15),
+                "z_dims": np.arange(7, 14),
                 "layers": classif_layers,
                 "type": "static",
             },
             "arthritis_inv": {
                 "y_names": ["ARTHRITIS_involvement_or"],
-                "z_dims": np.arange(15, 22),
+                "z_dims": np.arange(14, 21),
                 "layers": classif_layers,
                 "type": "static",
             },
             "arthritis_stage": {
                 "y_names": ["ARTHRITIS_stage_or"],
-                "z_dims": np.arange(15, 22),
+                "z_dims": np.arange(14, 21),
                 "layers": classif_layers,
                 "type": "static",
             },
@@ -183,43 +183,43 @@ if __name__ == "__main__":
         # weights for the different losses
         beta = 0.01
         # overall weight factor for the classifiers
-        # w_class = {
-        #     "lung_inv": 0.2,
-        #     "lung_stage": 0.2,
-        #     "heart_inv": 0.2,
-        #     "heart_stage": 0.2,
-        #     "arthritis_inv": 0.2,
-        #     "arthritis_stage": 0.2,
-        # }
         w_class = {
-            "lung_inv": 0.0,
-            "lung_stage": 0.0,
-            "heart_inv": 0.0,
-            "heart_stage": 0.0,
-            "arthritis_inv": 0.0,
-            "arthritis_stage": 0.0,
+            "lung_inv": 0.2,
+            "lung_stage": 0.2,
+            "heart_inv": 0.2,
+            "heart_stage": 0.2,
+            "arthritis_inv": 0.2,
+            "arthritis_stage": 0.2,
         }
+        # w_class = {
+        #     "lung_inv": 0.0,
+        #     "lung_stage": 0.0,
+        #     "heart_inv": 0.0,
+        #     "heart_stage": 0.0,
+        #     "arthritis_inv": 0.0,
+        #     "arthritis_stage": 0.0,
+        # }
         w_recon = 1
 
         # weights for the different losses
 
         # overall weight factor for the classifiers
-        # w_class_pred = {
-        #     "lung_inv": 0.2,
-        #     "lung_stage": 0.2,
-        #     "heart_inv": 0.2,
-        #     "heart_stage": 0.2,
-        #     "arthritis_inv": 0.2,
-        #     "arthritis_stage": 0.2,
-        # }
         w_class_pred = {
-            "lung_inv": 0.0,
-            "lung_stage": 0.0,
-            "heart_inv": 0.0,
-            "heart_stage": 0.0,
-            "arthritis_inv": 0.0,
-            "arthritis_stage": 0.0,
+            "lung_inv": 0.2,
+            "lung_stage": 0.2,
+            "heart_inv": 0.2,
+            "heart_stage": 0.2,
+            "arthritis_inv": 0.2,
+            "arthritis_stage": 0.2,
         }
+        # w_class_pred = {
+        #     "lung_inv": 0.0,
+        #     "lung_stage": 0.0,
+        #     "heart_inv": 0.0,
+        #     "heart_stage": 0.0,
+        #     "arthritis_inv": 0.0,
+        #     "arthritis_stage": 0.0,
+        # }
         # w_recon = max(0, 1 - beta - sum(w_class.values()))
         w_recon_pred = 1
 
