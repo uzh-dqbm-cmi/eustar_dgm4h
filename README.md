@@ -1,7 +1,7 @@
 # Modeling Complex Disease Trajectories using Deep Generative Models with Semi-Supervised Latent Processes
 
 This repository contains the code for the paper *Modeling Complex Disease Trajectories using Deep Generative
-Models with Semi-Supervised Latent Processes* under review for <cite>[ML4H 2023][1]</cite>. 
+Models with Semi-Supervised Latent Processes*. 
 
 ## Data
 
@@ -9,7 +9,7 @@ The EUSTAR data used to produce the results in the paper is confidential and can
 
 ## Code 
 The model implementation builds upon the 
-<cite>[pythae][2]</cite> library developed by Chadebec & al. The **benchmark_VAE/src/pythae/** folder contains the model implementation and the framework specific to systemic sclerosis modeling in the **benchmark_VAE/src/pythae/ssc/** folder. The **fake_data/** folder contains the framework to generate the artificial data. The **demo_notebooks/** folder contains notebooks to experiment with the model on some artificial data.
+<cite>[pythae][1]</cite> library developed by Chadebec & al. The **benchmark_VAE/src/pythae/** folder contains the model implementation and the framework specific to systemic sclerosis modeling in the **benchmark_VAE/src/pythae/ssc/** folder. The **fake_data/** folder contains the framework to generate the artificial data. The **demo_notebooks/** folder contains notebooks to experiment with the model on some artificial data.
 
  ## Running experiments on artificial data
  
@@ -32,5 +32,4 @@ After succesful completion of these three steps, you can run the notebooks in **
 * **demo_notebooks/model_evaluation.ipynb** : online monitoring and performance evaluation
 
 
-[1]: https://ml4health.github.io/2023/
-[2]: https://pypi.org/project/pythae/
+[1]: https://pypi.org/project/pythae/
