@@ -1,7 +1,7 @@
-# Modeling Complex Disease Trajectories using Deep Generative Models with Semi-Supervised Latent Processes
+# Generative Time Series Models with Interpretable Latent Processes for Complex Disease Trajectories
 
-This repository contains the code for the paper *Modeling Complex Disease Trajectories using Deep Generative
-Models with Semi-Supervised Latent Processes*. 
+This repository contains the code for the paper **Generative Time Series Models with Interpretable
+Latent Processes for Complex Disease Trajectories** accepted at the *Deep Generative Models for Health* Workshop at Neurips 2023. 
 
 ## Data
 
