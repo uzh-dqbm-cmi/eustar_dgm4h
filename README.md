@@ -1,7 +1,7 @@
 # Generative Time Series Models with Interpretable Latent Processes for Complex Disease Trajectories
 
-This repository contains the code for the paper **Generative Time Series Models with Interpretable
-Latent Processes for Complex Disease Trajectories** accepted at the *Deep Generative Models for Health* Workshop at Neurips 2023. 
+This repository contains the code for the papers **Generative Time Series Models with Interpretable
+Latent Processes for Complex Disease Trajectories** accepted at the [*Deep Generative Models for Health*](https://sites.google.com/ethz.ch/dgm4h-neurips2023/home) Workshop at Neurips 2023 and **Modeling Complex Disease Trajectories using Deep Generative Models with Semi-Supervised Latent Processes** accepted as Findings at [ML4H 2023](https://ml4health.github.io/2023/). 
 
 ## Data
 
