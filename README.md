@@ -16,9 +16,9 @@ The model implementation builds upon the
  Please be mindful to adapt the paths to save, load data, models, figures etc. to match your environment (`path_to_project` variable at the beginning of the scripts/notebooks)
 1.  `pip install -r requirements.txt`
 2.  `python3 fake_data/generate_fake_data.py` to generate fake data (then stored in fake_data/raw)
-3. `python3 benchmarkVAE/src/pythae/ssc/create_cv.py` to create the cohorts and objects (takes some time depending on the size of the data)
+3. `python3 benchmark_VAE/src/pythae/ssc/create_cv.py` to create the cohorts and objects (takes some time depending on the size of the data)
 
-After succesful completion of these three steps, you can run the notebooks in **demo_notebooks/**.
+After successful completion of these three steps, you can run the notebooks in **demo_notebooks/**.
 
 
 ### Notebooks description
